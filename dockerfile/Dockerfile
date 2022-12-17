@@ -304,7 +304,9 @@ RUN cp /ultrascan3/admin/codeql/docker/local.pri.somo /ultrascan3/us_somo/develo
 RUN cp /ultrascan3/admin/codeql/docker/local.pri.gui /ultrascan3/local.pri
 
 # setup & build somo
-RUN cd /ultrascan3/us_somo/develop && env ULTRASCAN=/ultrascan3 ./revision.sh && env us3=/ultrascan3 ./version.sh
+RUN cd /ultrascan3 && git checkout somo-dev
+#RUN cd /ultrascan3/us_somo/develop && env ULTRASCAN=/ultrascan3 ./revision.sh && env us3=/ultrascan3 ./version.sh
+RUN cd /ultrascan3/us_somo/develop && env ULTRASCAN=/ultrascan3 ./version.sh
 
 ENV PATH=/usr/local/Qt-5.15.7/bin:$PATH
 RUN echo $PATH
@@ -315,7 +317,8 @@ RUN cd /ultrascan3 && export ULTRASCAN=`pwd` us3=`pwd` && cd us_somo/develop && 
 RUN cd /ultrascan3 && export ULTRASCAN=`pwd` us3=`pwd` && cd us_somo/develop && qmake us_somo.pro && make -j5
 ## cd us_saxs_cmds_t && qmake && make -j5
 
-
+# needed for chimera
+RUN apt-get install -y libxss1
 
 # no service or systemctl in container
 CMD (/usr/bin/mongod --config /etc/mongod.conf &) && \
