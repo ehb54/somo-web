@@ -274,11 +274,26 @@ RUN cd /tmp && tar Jxf qt-everywhere-opensource-src-5.15.7.tar.xz
 RUN cd /tmp && ls -l
 RUN cd /tmp/qt-everywhere-src-5.15.7 && env MAKEFLAGS=-j4 ./configure  -release -opensource -confirm-license -platform linux-g++-64 -nomake tests -nomake examples -opengl desktop -fontconfig -system-freetype  -plugin-sql-mysql -plugin-sql-psql -openssl-linked -system-proxies -D QT_SHAREDMEMORY -D QT_SYSTEMSEMAPHORE -no-icu 
 RUN cd /tmp/qt-everywhere-src-5.15.7 && make -j5 && make install
+## qt installed in /usr/local/Qt-5.15.7/
+# clean up
+RUN rm -fr /tmp/qt-everywhere*
 
 # install qwt
 RUN wget https://versaweb.dl.sourceforge.net/project/qwt/qwt/6.1.6/qwt-6.1.6.tar.bz2
 RUN tar jxf qwt-6.1.6.tar.bz2
-RUN cd qwt-6.1.6 && qmake && make -j12 && make install
+RUN cd qwt-6.1.6 && /usr/local/Qt-5.15.7/bin/qmake && make -j4 && make install
+
+# setup SESCA
+RUN wget https://www.mpinat.mpg.de/628583/SESCA_v095.zip && unzip SESCA_v095.zip && cd SESCA && python2 setup.py
+
+# setup maxit
+RUN apt-get install -y bison flex
+RUN wget https://sw-tools.rcsb.org/apps/MAXIT/maxit-v11.100-prod-src.tar.gz && tar zxf maxit-v11.100-prod-src.tar.gz
+# have to run make 2x if using -j2 or greater due to unhandled build dependencies in the maxit makefile
+RUN cd maxit-v11.100-prod-src && make -j5 -k; exit 0
+RUN cd maxit-v11.100-prod-src && make -j5
+# RUN cd maxit-v11.100-prod-src && make -j1 
+RUN ls -l maxit-v11.100-prod-src/bin
 
 # get source
 RUN git clone https://github.com/ehb54/ultrascan3.git
@@ -288,12 +303,19 @@ RUN git clone https://github.com/ehb54/ultrascan3.git
 RUN cp /ultrascan3/admin/codeql/docker/local.pri.somo /ultrascan3/us_somo/develop/local.pri
 RUN cp /ultrascan3/admin/codeql/docker/local.pri.gui /ultrascan3/local.pri
 
-# somo version setup
+# setup & build somo
 RUN cd /ultrascan3/us_somo/develop && env ULTRASCAN=/ultrascan3 ./revision.sh && env us3=/ultrascan3 ./version.sh
 
+ENV PATH=/usr/local/Qt-5.15.7/bin:$PATH
+RUN echo $PATH
 RUN qmake --version
 
-RUN cd /ultrascan3 && export ULTRASCAN=`pwd` us3=`pwd` && cd us_somo/develop && ./revision.sh && ./version.sh && qmake libus_somo.pro && make -j4 && qmake us_somo.pro && cd us_saxs_cmds_t && qmake && make -j4
+# need to build all of somo whole shebang for us_somo script commands
+RUN cd /ultrascan3 && export ULTRASCAN=`pwd` us3=`pwd` && cd us_somo/develop && qmake libus_somo.pro && make -j5
+RUN cd /ultrascan3 && export ULTRASCAN=`pwd` us3=`pwd` && cd us_somo/develop && qmake us_somo.pro && make -j5
+## cd us_saxs_cmds_t && qmake && make -j5
+
+
 
 # no service or systemctl in container
 CMD (/usr/bin/mongod --config /etc/mongod.conf &) && \
