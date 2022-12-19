@@ -277,11 +277,12 @@ RUN cd /tmp/qt-everywhere-src-5.15.7 && make -j5 && make install
 ## qt installed in /usr/local/Qt-5.15.7/
 # clean up
 RUN rm -fr /tmp/qt-everywhere*
+RUN rm /usr/bin/qmake; ln -s /usr/local/Qt-5.15.7/bin/qmake /usr/bin/qmake
 
 # install qwt
 RUN wget https://versaweb.dl.sourceforge.net/project/qwt/qwt/6.1.6/qwt-6.1.6.tar.bz2
 RUN tar jxf qwt-6.1.6.tar.bz2
-RUN cd qwt-6.1.6 && /usr/local/Qt-5.15.7/bin/qmake && make -j4 && make install
+RUN cd qwt-6.1.6 && qmake && make -j4 && make install
 
 # setup SESCA
 RUN wget https://www.mpinat.mpg.de/628583/SESCA_v095.zip && unzip SESCA_v095.zip && cd SESCA && python2 setup.py
@@ -308,17 +309,19 @@ RUN cd /ultrascan3 && git checkout somo-dev
 #RUN cd /ultrascan3/us_somo/develop && env ULTRASCAN=/ultrascan3 ./revision.sh && env us3=/ultrascan3 ./version.sh
 RUN cd /ultrascan3/us_somo/develop && env ULTRASCAN=/ultrascan3 ./version.sh
 
-ENV PATH=/usr/local/Qt-5.15.7/bin:$PATH
-RUN echo $PATH
 RUN qmake --version
 
 # need to build all of somo whole shebang for us_somo script commands
 RUN cd /ultrascan3 && export ULTRASCAN=`pwd` us3=`pwd` && cd us_somo/develop && qmake libus_somo.pro && make -j5
 RUN cd /ultrascan3 && export ULTRASCAN=`pwd` us3=`pwd` && cd us_somo/develop && qmake us_somo.pro && make -j5
 ## cd us_saxs_cmds_t && qmake && make -j5
-
+RUN echo 'env ULTRASCAN=/ultrascan3/us_somo LD_LIBRARY_PATH=/ultrascan3/us_somo/lib:/qwt-6.1.6/lib /ultrascan3/us_somo/bin64/us3_somo \$*' > /usr/bin/us_somo.sh && chmod +x /usr/bin/us_somo.sh
+ 
 # needed for chimera
 RUN apt-get install -y libxss1
+
+# needed for dummy display
+RUN apt-get install -y Xvfb
 
 # no service or systemctl in container
 CMD (/usr/bin/mongod --config /etc/mongod.conf &) && \
