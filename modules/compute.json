@@ -1,0 +1,400 @@
+{
+    "submitpolicy" : "all",
+    "label" : "US-SOMO Hydrodynamic Calculations",
+    "noreset" : "true",
+    "moduleid" : "compute",
+    "executable" : "compute.php",
+    "hoverhighlight" : "true",
+    "panels" : [
+        {
+            "root" : {
+                "label" : [
+                    1,
+                    1
+                ],
+                "data" : [
+                    1,
+                    2
+                ],
+                "gap" : "1px",
+                "align" : "left",
+                "size" : [
+                    1,
+                    "auto"
+                ]
+            }
+        },
+        {
+            "header" : {
+                "data" : [
+                    2,
+                    1
+                ],
+                "label" : [
+                    1,
+                    1
+                ],
+                "align" : "center",
+                "gap" : "1px",
+                "size" : [
+                    "auto",
+                    "auto"
+                ],
+                "location" : [
+                    "next",
+                    "full"
+                ]
+            }
+        },
+        {
+            "body" : {
+                "location" : [
+                    "next",
+                    "full"
+                ],
+                "size" : [
+                    "auto",
+                    [
+                        1,
+                        1
+                    ]
+                ]
+            }
+        },
+        {
+            "footer" : {
+                "align" : "center",
+                "size" : [
+                    "auto",
+                    "auto"
+                ],
+                "location" : [
+                    "next",
+                    "full"
+                ],
+                "data" : [
+                    2,
+                    1
+                ],
+                "label" : [
+                    1,
+                    1
+                ]
+            }
+        },
+        {
+            "inputpanel" : {
+                "parent" : "body",
+                "location" : [
+                    "next",
+                    "full"
+                ],
+                "align" : "left",
+                "size" : [
+                    "auto",
+                    [1,1]
+                ]
+            }
+        },
+        {
+            "resultpanel" : {
+                "align" : "left",
+                "size" : [
+                    "auto",
+                    [ 1, 1 ]
+                ],
+                "location" : [
+                    "next",
+                    "full"
+                ],
+                "data" : [
+                    1,
+                    2
+                ],
+                "parent" : "body",
+                "repeats" : {
+                    "indent" : "10px"
+                },
+                "label" : [
+                    1,
+                    1
+                ]
+            }
+        }
+    ],
+    "fields" : [
+        {
+            "role" : "input",
+            "label" : "<h5><a target=_blank href=http://somo.aucsolutions.com>US-SOMO</a> <a target=_blank href=https://link.springer.com/article/10.1007%2Fs00249-018-1296-0>Hydrodynamic, Structural</a> and <a target=_blank href=https://www.mpibpc.mpg.de/sesca>SESCA CD</a> Calculations on User-provided Structures</h5><br>The flexibility of extensive unstructured regions is not taken into account in the computations.<br>Note: all computations refer to standard conditions, water at 20&#x2103;, pH 7.<br>Last updated 21 December 2022. See <a target=_blank href=docs>DOCS</a> tab for details.",
+            "type" : "label",
+            "id" : "label_0"
+            ,"marginbottom"    : "45px"
+            ,"layout" : {
+                "parent" : "header"
+            }
+        },
+        {
+            "role" : "input",
+            "id" : "pdbfile",
+            "help" : "Select a PDB file and then click <i>Process</i> below",
+            "type" : "file",
+            "label" : "Input PDB file",
+            "labelmargintop" : "0.5rem"
+            ,"required" : "true"
+            ,"layout" : {
+                "parent" : "inputpanel"
+            }
+        },
+        {
+           "role"        : "input"
+           ,"id"         : "b_submit"
+           ,"type"       : "button"
+            ,"buttontext" : "Process"
+            ,"margin"    : "1px"
+           ,"layout"    : {
+               "parent"    : "inputpanel"
+#               ,"location" : [ row, column ] (optional - defaults to [ "next", "next" ] )
+#               ,"label"    : [ row, column ] (optional - inherits )
+#               ,"data"     : [ row, column ] (optional - inherits )
+#               ,"align"    : "right"         (optional - inherits )
+#               ,"repeats"  : {}              (optional - inherits - only used for repeater fields)
+           }
+        },
+        {
+            "role" : "input"
+            ,"id" : "afid"
+            ,"help" : "Load structure from AlphaFold"
+            ,"type" : "button"
+            ,"label" : "or select AlphaFold structure"
+            ,"buttontext" : "Get from AlphaFold"
+            ,"labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "inputpanel"
+            }
+        },
+        {
+            "help" : "As reported in the PDB TITLE information",
+            "id" : "title",
+            "type" : "textarea",
+            "role" : "output",
+            "label" : "Title",
+            "rows" : 3,
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "help" : "As reported in the PDB SOURCE information",
+            "id" : "source",
+            "type" : "textarea",
+            "role" : "output",
+            "label" : "Source",
+            "rows" : 5,
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "help" : "The date hydrodynamic and structural calculations were performed",
+            "id" : "somodate",
+            "type" : "text",
+            "label" : "Hydrodynamic, structural and CD calculations date",
+            "role" : "output",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "label" : "Molecular mass [Da]",
+            "role" : "output",
+            "id" : "mw",
+            "help" : "The atomic mass",
+            "type" : "text",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "id" : "psv",
+            "help" : "Computed from the sequence",
+            "type" : "text",
+            "role" : "output",
+            "label" : "Partial specific volume <b><i><span style=text-decoration:overline>&nu;<span></i></b> &nbsp;[cm<sup>3</sup>/g]",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "id" : "hyd",
+            "help" : "Based on the NMR-freezing work of Kuntz & Kauzmann <a target=_blank href=https://doi.org/10.1016/S0065-3233(08)60232-6>doi:10.1016/S0065-3233(08)60232-6</a>",
+            "type" : "text",
+            "role" : "output",
+            "label" : "Theoretical hydration [g H<sub>2</sub>O/g protein]",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "label" : "Translational diffusion coefficient <b><i>D<sup>0</sup><sub>20,w</sub></i></b> &nbsp;[F]",
+            "role" : "output",
+            "help" : "Computed from the theoretically hydrated structure, [F] (Ficks) = 10<sup>-7</sup> [cm<sup>2</sup>/sec]",
+            "id" : "Dtr",
+            "type" : "text",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "label" : "Sedimentation coefficient <b><i>s<sup>0</sup><sub>20,w</sub></i></b> &nbsp;[S]",
+            "role" : "output",
+            "type" : "text",
+            "help" : "Computed from the translational diffusion coefficient, molecular mass and partial specific volume",
+            "id" : "S",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "label" : "Stokes radius <b><i>R<sub>S</sub></i></b> &nbsp;[nm]",
+            "role" : "output",
+            "type" : "text",
+            "help" : "Computed from the translational diffusion coefficient",
+            "id" : "Rs",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "type" : "text",
+            "help" : "Computed from the theoretically hydrated structure",
+            "id" : "Eta",
+            "label" : "Intrinsic viscosity <b>[<i>&eta;</i>]</b> &nbsp;[cm<sup>3</sup>/g]",
+            "role" : "output",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "type" : "text",
+            "help" : "Computed from the non hydrated structure using the mass and positions of the atoms. This value should be close to the Rg derived from SANS in low or zero concentrations of D<sub>2</sub>O [<a target=_blank href=https://doi.org/10.1107/S1399004714013923>doi:10.1107/S1399004714013923</a>].",
+            "id" : "Rg",
+            "role" : "output",
+            "label" : "Radius of gyration <b><i>R<sub>g</sub></i></b> &nbsp;[&#8491;]",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "label" : "Maximum extension X [nm]",
+            "role" : "output",
+            "help" : "The principal axis aligned structure&apos;s maximum extension in the X dimension",
+            "type" : "text",
+            "id" : "ExtX",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "role" : "output",
+            "label" : "Maximum extension Y [nm]",
+            "help" : "The principal axis aligned structure&apos;s maximum extension in the Y dimension",
+            "id" : "ExtY",
+            "type" : "text",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "label" : "Maximum extension Z [nm]",
+            "role" : "output",
+            "type" : "text",
+            "help" : "The principal axis aligned structure&apos;s maximum extension in the Z dimension",
+            "id" : "ExtZ",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "type" : "text",
+            "help" : "The percent of peptide bonds identified by DSSP, implemented in UCSF Chimera, as &alpha;-Helix",
+            "id" : "helix",
+            "label" : "% Helix",
+            "role" : "output",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "label" : "% Sheet",
+            "role" : "output",
+            "help" : "The percent of peptide bonds identified by DSSP, implemented in UCSF Chimera, as &beta;-Sheet",
+            "type" : "text",
+            "id" : "sheet",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "label" : "Downloads",
+            "role" : "output",
+            "help" : "Notes<br>PDB and mmCIF - signal peptide removed (if present); disulphide bonds, &alpha;-Helix and &Beta;-Sheet annotated<br>mmCIF was produced using RCSB&apos;s MAXIT Suite from the PDB<br>All zip&apos;d - zip archive for this model<br>All txz&apos;d - tar xz archive for this model",
+            "id" : "downloads",
+            "type" : "html",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "role" : "output",
+            "label" : "SAXS P(r)",
+            "help" : "The P(r) is computed on the structure for comparison with SAXS derived data and is normalized by molecular mass",
+            "type" : "plotly",
+            "id" : "prplot",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "role" : "output",
+            "label" : "CD (Circular Dichroism) spectrum",
+            "help" : "The CD is computed on the structure for comparison with CD experimental data",
+            "type" : "plotly",
+            "id" : "cdplot",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
+        {
+            "width" : "100%",
+            "label" : "Structure",
+            "help"  : "Right click on structure for more options",
+            "role" : "output",
+            "jsmoladd" : "ribbon only; color temperature",
+            "id" : "struct",
+            "type" : "atomicstructure",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        }
+    ]
+}
