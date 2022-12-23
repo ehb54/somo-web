@@ -1,7 +1,10 @@
 #!/usr/bin/perl
 
+use File::Temp qw(tempdir);
 use File::Temp qw(tempfile);
 use File::Basename;
+use Cwd qw(cwd);
+
 $scriptdir = dirname(__FILE__);
 require "$scriptdir/utility.pm";
 
@@ -62,6 +65,24 @@ print $fh
     ;
 close $fh;
 
+## compute CD spectra
+
+{
+    my $pwd = cwd;
+    my $template = "cdrun.XXXXXXXXX";
+    my $dir = tempdir( $template, CLEANUP => 1 );
+    my $cdcmd = "python2 /SESCA/scripts/SESCA_main.py \@pdb";
+
+    my $fb  =  $f;
+    print "+cd 1 : compute CD spectra start\n";
+    my $cmd = "ln $f $dir/ && cd $dir && $cdcmd $f && grep -v Workdir: CD_comp.out | perl -pe 's/ \\/srv.*SESCA\\// SESCA\\//' > $pwd/ultrascan/results/${fpdbnoext}-sesca-cd.dat";
+    run_cmd( $cmd, true );
+    if ( run_cmd_last_error() ) {
+        print sprintf( "+cd 2 ERROR [%d] - $fpdb running SESCA computation $cmd\n", run_cmd_last_error() );
+    } else {
+        print "+cd 2 compute CD spectra complete\n";
+    }
+}
 
 ## run somo
 
@@ -90,15 +111,34 @@ open $ch, "$cmd 2>&1 |";
 
 while ( my $l = <$ch> ) {
     print "read line:\n$l\n";
+    if ( $l =~ /^~pgrs/ ) {
+        print $l;
+        next;
+    }
+    if ( $l =~ /^~texts/ ) {
+        my ( $tag ) = $l =~ /^~texts (.*) :/;
+        my $lastblank = 0;
+        while ( my $l = <$ch> ) {
+            if ( $l =~ /^~texte/ ) {
+                last;
+            }
+            next if $l =~ /(^All options set to default values| created\.$|^Bead models have overlap, dimensionless)/;
+            my $thisblank = $l =~ /^\s*$/;
+            next if $thisblank && $lastblank;
+            $tagcounts{$tag}++;
+            print "+$tag $tagcounts{$tag} : $l";
+            $lastblank = $thisblank;
+        }
+    }
 }
-
-die "testing\n";
+close $ch;
+$last_exit_status = $?;
 
 ## cleanup extra files
 unlink glob "ultrascan/somo/$fpdbnoext*{asa_res,bead_model,hydro_res,bod}";
 
 ## check run was ok
-if ( run_cmd_last_error() ) {
+if ( $last_exist_status ) {
     my $error = sprintf( "$0: ERROR [%d] - $fpdb running SOMO computation $cmd\n", run_cmd_last_error() );
     $errors .= $error;
 } else {
@@ -112,17 +152,18 @@ if ( run_cmd_last_error() ) {
     }
 }
 
+
 # ## rename and move p(r)
 
-# {
-#     my $cmd = "mv $prfile $$p_config{prdir}/${fpdbnoext}-pr.dat";
-#     run_cmd( $cmd, true );
-#     if ( run_cmd_last_error() ) {
-#         my $error = sprintf( "$0: ERROR [%d] - $fpdb mv error $cmd\n", run_cmd_last_error() );
-#         $errors .= $error;
-#     }
-# }
+{
+    my $cmd = "mv $prfile ultrascan/results/${fpdbnoext}-pr.dat";
+    run_cmd( $cmd, true );
+    if ( run_cmd_last_error() ) {
+        my $error = sprintf( "$0: ERROR [%d] - $fpdb mv error $cmd\n", run_cmd_last_error() );
+        $errors .= $error;
+    }
+}
 
-
+print $errors;
 
 
