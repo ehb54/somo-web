@@ -11,6 +11,8 @@ require "$scriptdir/utility.pm";
 ## user config
 
 $setupsomodir = "$scriptdir/../somoinit/setupsomodir.pl";
+$ultrascan    = "/ultrascan3";  # where ultrascan source is installed
+$threads      = 6;
 $debug++;
 
 ## end user config
@@ -41,6 +43,39 @@ if ( !-e "ultrascan/etc/usrc.conf" ) {
     print "skipping usrc init, already present\n" if $debug;
 }
 
+# check if newer revision present
+
+{
+    my $revfile  = "$ultrascan/us_somo/develop/include/us_revision.h";
+    my $instfile = "ultrascan/etc/somorevision";
+    die "$revfile does not exist\n" if !-e $revfile;
+    my $usrev   = `head -1 /ultrascan3/us_somo/develop/include/us_revision.h | awk -F\\\" '{ print \$2 }'`;
+    chomp $usrev;
+    my $instrev = `cat $instfile`;
+    chomp $instrev;
+    if ( $usrev ne $instrev ) {
+        `echo $usrev > $instfile`;
+        for my $f (
+            "somo.atom"
+            ,"somo.config"
+            ,"somo.defaults"
+            ,"somo.hybrid"
+            ,"somo.hydrated_rotamer"
+            ,"somo.residue"
+            ,"somo.saxs_atoms"
+            ) {
+            my $source = "$ultrascan/us_somo/etc/$f.new";
+            die "$source does not exist\n" if !-e $source;
+            die "$source is not readable\n" if !-r $source;
+            print `cp $ultrascan/us_somo/etc/$f.new ultrascan/etc/$f`;
+        }
+        print "new configs installed\n";
+    } else {
+        print "revision ok\n";
+    }
+    print "somo revision: $usrev\n";
+}
+
 ## run somo
 
 $fpdb = $f;
@@ -49,8 +84,19 @@ $fpdbnoext =~ s/\.pdb$//i;
 
 my ( $fh, $ft ) = tempfile( "somocmds.XXXXXX", UNLINK => 1 );
 print $fh
-    "threads 4\n"
+    "threads 6\n"
     . "progress prog_prefix\n"
+    . "saveparams init\n"
+    . "saveparams results.name\n"
+    . "saveparams results.mass\n"
+    . "saveparams results.vbar\n"
+    . "saveparams results.D20w\n"
+    . "saveparams results.s20w\n"
+    . "saveparams results.rs\n"
+    . "saveparams results.viscosity\n"
+    . "saveparams results.viscosity_sd\n"
+    . "saveparams results.asa_rg_pos\n"
+    . "saveparams max_ext_x\n"
     . "batch selectall\n"
     . "batch somo_o\n"
     . "batch prr\n"
@@ -110,7 +156,7 @@ print "command is $cmd\n";
 open $ch, "$cmd 2>&1 |";
 
 while ( my $l = <$ch> ) {
-    print "read line:\n$l\n";
+    # print "read line:\n$l\n";
     if ( $l =~ /^~pgrs/ ) {
         print $l;
         next;
