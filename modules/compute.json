@@ -1,10 +1,11 @@
 {
-    "submitpolicy" : "all",
-    "label" : "US-SOMO Hydrodynamic Calculations",
-    "noreset" : "true",
-    "moduleid" : "compute",
-    "executable" : "compute.php",
+    "submitpolicy"   : "all",
+    "label"          : "US-SOMO Hydrodynamic Calculations",
+    "noreset"        : "true",
+    "moduleid"       : "compute",
+    "executable"     : "compute.php",
     "hoverhighlight" : "true",
+    "uniquedir"      : "on",
     "panels" : [
         {
             "root" : {
