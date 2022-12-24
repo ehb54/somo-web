@@ -220,4 +220,51 @@ while ( @cr ) {
     $crmap{ shift @cr }++;
 }
 
+sub seqres {
+    my $pdb = shift || error_exit( "$0: seqres() requires an argument" );
+
+    my $seqs = \{};
+    my %lastseq;
+    
+    my $lastresseq;
+    my $lastchain;
+
+
+    for my $l ( @$pdb ) {
+        next if $l !~ /^ATOM/;
+        my $resseq  = mytrim( substr( $l, 22, 4 ) );
+        my $resname = substr( $l, 17, 3 );
+        my $chain   = substr( $l, 21, 1 );
+
+        if ( $resseq ne $lastresseq ) {
+            $$seqs->{$chain} = [] if !exists $$seqs->{$chain};
+            push @{$$seqs->{$chain}}, $resname;
+            $lastseq{ $chain } = $resseq;
+            $lastresseq        = $resseq;
+        }
+    }        
+
+    my $line = 1;
+    my @out;
+
+    for my $c ( sort keys %{$$seqs} ) {
+        ## build seq
+
+        push @out, sprintf( "SEQRES%4d $c%5d ", $line++, $lastseq{$c} );
+    
+        my $added = 0;
+        for my $res ( @{$$seqs->{$c}} ) {
+            $out[-1] .= " $res";
+            if ( ++$added == 13 ) {
+                push @out, sprintf( "SEQRES%4d $c%5d ", $line++, $lastseq{$c} );
+                $added = 0;
+            }                
+        }
+        pop @out if !$added;
+    }
+
+    grep s/$/\n/, @out;
+    @out;
+}
+
 return 1;
