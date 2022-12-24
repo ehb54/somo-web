@@ -351,8 +351,22 @@ grep chomp, @hdata;
         $data{sheet} = sprintf( "%.2f", $sheetcount * 100.0 / ( $rescount - 1.0 ) );
     }
 
+    $data{Dtr} *= 1e7;
+    $data{Dtr_sd} *= 1e7;
+
     for my $k ( keys %data ) {
         print "__: $k : $data{$k}\n";
+    }
+
+    ## create results csv
+    {
+        my $date = `date`;
+        chomp $date;
+        my $csvdata = qq{"Model name","Title","Source","Hydrodynamic calculations date","Chains residue sequence start and end","Molecular mass [Da]","Partial specific volume [cm^3/g]","Translational diffusion coefficient D [F]","Sedimentation coefficient s [S]","Stokes radius [nm]","Intrinsic viscosity [cm^3/g]","Intrinsic viscosity s.d.","Radius of gyration (+r) [A] (from PDB atomic structure)","Maximum extensions X [nm]","Maximum extensions Y [nm]","Maximum extensions Z [nm]","Helix %","Sheet %"\n};
+        $csvdata .= qq{"$f","$data{title}","$data{source}","$date","$data{pdbinfo}",$data{mw},$data{psv},$data{Dtr},$data{S},$data{Rs},$data{Eta},$data{Eta_sd},$data{Rg},$data{ExtX},$data{ExtY},$data{ExtZ},$data{helix},$data{sheet}\n};
+        open OUT, ">ultrascan/results/${fpdbnoext}.csv";
+        print OUT $csvdata;
+        close OUT;
     }
 }
 
