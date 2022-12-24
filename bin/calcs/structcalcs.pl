@@ -17,13 +17,69 @@ $ultrascan    = "/ultrascan3";  # where ultrascan source is installed
 $threads      = 6;
 $debug++;
 
+%progress_weights = (
+    "cd" => 10
+    ,"bm" => 20
+    ,"pr" => 20
+    ,"ch" => 50
+    ,"pp" => 10
+);    
+
 ## end user config
 
 ## developer config
 
 $somo = "env HOME=`pwd` xvfb-run us_somo.sh -p -g ";
 
+$progress_tot_weight   = 94;
+$progress_start_offset = 5; ## for chimera
+
+@progress_seq = (
+    "cd"
+    ,"bm"
+    ,"pr"
+    ,"ch"
+    ,"pp"
+    );
+
 ## end developer config
+
+## progress utility
+
+sub progress_init {
+    my $p = $progress_start_offset;
+
+    for my $k ( @progress_seq ) {
+        die "missing progress weight $k\n" if !exists $progress_weights{$k};
+        $progress_base{$k} = $p;
+        $p += $progress_weights{$k};
+    }
+
+    $progress_total_weight = $p;
+}
+
+sub progress {
+    my $p = shift;
+    my ( $k, $val ) = $p =~ /_*~pgrs\s+(\S+)\s+:\s+(\S+)\s*$/;
+    
+    die "missing progress base '$k'\n" if !exists $progress_base{$k};
+#    print "progress string '$p' k $k val $val\n";
+
+    sprintf( "%.3f", ( $progress_base{$k} + $val * $progress_weights{$k} ) / $progress_total_weight );
+}
+    
+sub progress_test {
+    for my $i ( @progress_seq ) {
+        for my $j ( 0, .5, 1 ) {
+            print sprintf( "$i $j : %s\n", progress( "~pgrs $i : $j" ) );
+        }
+    }
+    die "testing\n";
+}
+
+progress_init();
+
+## end progress utility
 
 $notes = "usage: $0 pdb
 
@@ -163,7 +219,7 @@ open $ch, "$cmd 2>&1 |";
 while ( my $l = <$ch> ) {
     # print "read line:\n$l\n";
     if ( $l =~ /^~pgrs/ ) {
-        print "__$l";
+        print sprintf( "__~pgrs al : %s\n", progress( $l ) );
         next;
     }
     if ( $l =~ /^~texts/ ) {
