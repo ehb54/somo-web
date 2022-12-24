@@ -44,6 +44,8 @@ $progress_start_offset = 4; ## for chimera
 
 ## end developer config
 
+$| = 1;
+
 ## progress utility
 
 sub progress_init {
@@ -242,7 +244,7 @@ while ( my $l = <$ch> ) {
             if ( $l =~ /^~texte/ ) {
                 last;
             }
-            next if $l =~ /(^All options set to default values| created\.$|^Bead models have overlap, dimensionless)/;
+            next if $l =~ /(^All options set to default values| created\.$|^Bead models have overlap, dimensionless|^Created)/;
             my $thisblank = $l =~ /^\s*$/;
             next if $thisblank && $lastblank;
             $tagcounts{$tag}++;
@@ -336,7 +338,9 @@ grep chomp, @hdata;
 ## additional fields
 # $data{_id}      = "${id}-${pdb_frame}${pdb_variant}";
 # $data{name}     = "AF-${id}-${pdb_frame}-model_${pdb_ver}";
-# $data{somodate} = $processing_date;
+my $processing_date = `date`;
+chomp $processing_date;
+$data{somodate} = $processing_date;
 
 ### additional fields from the pdb
 {
@@ -429,10 +433,8 @@ grep chomp, @hdata;
 
     ## create results csv
     {
-        my $date = `date`;
-        chomp $date;
         my $csvdata = qq{"Model name","Title","Source","Hydrodynamic calculations date","Chains residue sequence start and end","Molecular mass [Da]","Partial specific volume [cm^3/g]","Translational diffusion coefficient D [F]","Sedimentation coefficient s [S]","Stokes radius [nm]","Intrinsic viscosity [cm^3/g]","Intrinsic viscosity s.d.","Radius of gyration (+r) [A] (from PDB atomic structure)","Maximum extensions X [nm]","Maximum extensions Y [nm]","Maximum extensions Z [nm]","Helix %","Sheet %"\n};
-        $csvdata .= qq{"$f","$data{title}","$data{source}","$date","$data{pdbinfo}",$data{mw},$data{psv},$data{Dtr},$data{S},$data{Rs},$data{Eta},$data{Eta_sd},$data{Rg},$data{ExtX},$data{ExtY},$data{ExtZ},$data{helix},$data{sheet}\n};
+        $csvdata .= qq{"$f","$data{title}","$data{source}","$data{somodate}","$data{pdbinfo}",$data{mw},$data{psv},$data{Dtr},$data{S},$data{Rs},$data{Eta},$data{Eta_sd},$data{Rg},$data{ExtX},$data{ExtY},$data{ExtZ},$data{helix},$data{sheet}\n};
         open OUT, ">ultrascan/results/${fpdbnoext}.csv";
         print OUT $csvdata;
         close OUT;

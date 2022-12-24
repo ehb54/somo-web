@@ -354,7 +354,7 @@
         {
             "label" : "Downloads",
             "role" : "output",
-            "help" : "Notes<br>PDB and mmCIF - signal peptide removed (if present); disulphide bonds, &alpha;-Helix and &Beta;-Sheet annotated<br>mmCIF was produced using RCSB&apos;s MAXIT Suite from the PDB<br>All zip&apos;d - zip archive for this model<br>All txz&apos;d - tar xz archive for this model",
+            "help" : "Notes<br>PDB and mmCIF - disulphide bonds, &alpha;-Helix and &Beta;-Sheet annotated<br>mmCIF was produced using RCSB&apos;s MAXIT Suite from the PDB<br>All zip&apos;d - zip archive for this model<br>All txz&apos;d - tar xz archive for this model",
             "id" : "downloads",
             "type" : "html",
             "labelmargintop" : "0.5rem"
@@ -389,7 +389,7 @@
             "label" : "Structure",
             "help"  : "Right click on structure for more options",
             "role" : "output",
-            "jsmoladd" : "ribbon only; color temperature",
+            "jsmoladd" : "ribbon only; color structure",
             "id" : "struct",
             "type" : "atomicstructure",
             "labelmargintop" : "0.5rem"
