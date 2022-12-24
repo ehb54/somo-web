@@ -57,4 +57,13 @@ sub debug_json {
         ;
 }
 
+sub write_file {
+    my $f   = shift || error_exit( "$0: write_file() : missing argument" );
+    my $msg = shift || error_exit( "$0: write_file( $f ) : missing 2nd argument" );
+    open my $fh, ">$f" || error_exit( "$0: write_file( $f, _ ) : file open error $!" );
+    print $fh $msg;
+    close $fh;
+    error_exit( "$0: error writing file $f, does not exist after writing!\n" ) if !-e $f;
+}
+
 return true;
