@@ -4,7 +4,7 @@ use JSON;
 
 sub error_exit {
     my $msg = shift;
-    die "$msg\n";
+    die "__E : $msg\n";
 }
 
 sub line {

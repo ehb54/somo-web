@@ -31,8 +31,8 @@ $debug++;
 
 $somo = "env HOME=`pwd` xvfb-run us_somo.sh -p -g ";
 
-$progress_tot_weight   = 94;
-$progress_start_offset = 5; ## for chimera
+$progress_tot_weight   = 99;
+$progress_start_offset = 4; ## for chimera
 
 @progress_seq = (
     "cd"
@@ -50,7 +50,7 @@ sub progress_init {
     my $p = $progress_start_offset;
 
     for my $k ( @progress_seq ) {
-        die "missing progress weight $k\n" if !exists $progress_weights{$k};
+        error_exit( "missing progress weight $k" ) if !exists $progress_weights{$k};
         $progress_base{$k} = $p;
         $p += $progress_weights{$k};
     }
@@ -62,7 +62,7 @@ sub progress {
     my $p = shift;
     my ( $k, $val ) = $p =~ /_*~pgrs\s+(\S+)\s+:\s+(\S+)\s*$/;
     
-    die "missing progress base '$k'\n" if !exists $progress_base{$k};
+    error_exit( "missing progress base '$k'" ) if !exists $progress_base{$k};
 #    print "progress string '$p' k $k val $val\n";
 
     sprintf( "%.3f", ( $progress_base{$k} + $val * $progress_weights{$k} ) / $progress_total_weight );
@@ -74,7 +74,7 @@ sub progress_test {
             print sprintf( "$i $j : %s\n", progress( "~pgrs $i : $j" ) );
         }
     }
-    die "testing\n";
+    error_exit( "testing" );
 }
 
 progress_init();
@@ -89,11 +89,11 @@ computes hydrodynamics, P(r) and CD on structure
 
 $f = shift || die $notes;
 
-die "$f does not exist\n" if !-e $f;
-die "$f is not readable\n" if !-r $f;
-die "$setupsomodir does not exist\n" if !-e $setupsomodir;
-die "$setupsomodir is not readable\n" if !-r $setupsomodir;
-die "$setupsomodir is not executable\n" if !-x $setupsomodir;
+error_exit( "$f does not exist" ) if !-e $f;
+error_exit( "$f is not readable" ) if !-r $f;
+error_exit( "$setupsomodir does not exist" ) if !-e $setupsomodir;
+error_exit( "$setupsomodir is not readable" ) if !-r $setupsomodir;
+error_exit( "$setupsomodir is not executable" ) if !-x $setupsomodir;
     
 if ( !-e "ultrascan/etc/usrc.conf" ) {
     run_cmd( "$setupsomodir `pwd`" );
@@ -106,7 +106,7 @@ if ( !-e "ultrascan/etc/usrc.conf" ) {
 {
     my $revfile  = "$ultrascan/us_somo/develop/include/us_revision.h";
     my $instfile = "ultrascan/etc/somorevision";
-    die "$revfile does not exist\n" if !-e $revfile;
+    error_exit( "$revfile does not exist" ) if !-e $revfile;
     my $usrev   = `head -1 /ultrascan3/us_somo/develop/include/us_revision.h | awk -F\\\" '{ print \$2 }'`;
     chomp $usrev;
     my $instrev = `cat $instfile`;
@@ -123,8 +123,8 @@ if ( !-e "ultrascan/etc/usrc.conf" ) {
             ,"somo.saxs_atoms"
             ) {
             my $source = "$ultrascan/us_somo/etc/$f.new";
-            die "$source does not exist\n" if !-e $source;
-            die "$source is not readable\n" if !-r $source;
+            error_exit( "$source does not exist" ) if !-e $source;
+            error_exit( "$source is not readable" ) if !-r $source;
             print `cp $ultrascan/us_somo/etc/$f.new ultrascan/etc/$f`;
         }
         print "new configs installed\n";
@@ -134,11 +134,21 @@ if ( !-e "ultrascan/etc/usrc.conf" ) {
     print "somo revision: $usrev\n";
 }
 
+## prepare pdb
+
+print "__+in 1 : prepare structure starting\n";
+run_cmd( "$scriptdir/prepare.pl $f", true );
+if ( run_cmd_last_error() ) {
+    error_exit( sprintf( "ERROR [%d] - $fpdb running prepare computation $cmd", run_cmd_last_error() ) );
+} else {
+    print "__+in 2 : prepare structure complete\n";
+}
+
 ## run somo
 
-$fpdb = $f;
-$fpdbnoext = $fpdb;
+$fpdbnoext = $f;
 $fpdbnoext =~ s/\.pdb$//i;
+$fpdb = "$fpdbnoext-somo.pdb";
 
 my ( $fh, $ft ) = tempfile( "somocmds.XXXXXX", UNLINK => 1 );
 print $fh
@@ -163,7 +173,7 @@ print $fh
     . "batch prr\n"
     . "batch zeno\n"
     . "batch combineh\n"
-    . "batch combinehname $fpdb\n"
+    . "batch combinehname $fpdbnoext\n"
     . "batch saveparams\n"
     . "somo overwrite\n"
     . "batch overwrite\n"
@@ -193,8 +203,8 @@ close $fh;
 
 ## run somo
 
-my $prfile    = "ultrascan/somo/saxs/${fpdbnoext}_1b1.sprr_x";
-my $hydrofile = "ultrascan/somo/$fpdb.csv";
+my $prfile    = "ultrascan/somo/saxs/${fpdbnoext}-somo_1b1.sprr_x";
+my $hydrofile = "ultrascan/somo/$fpdbnoext.csv";
 
 my @expected_outputs =
     (
@@ -259,7 +269,7 @@ if ( $last_exist_status ) {
     }
 }
 
-die $errors if $errors;
+error_exit( $errors ) if $errors;
 
 ## rename and move p(r)
 
@@ -267,8 +277,7 @@ die $errors if $errors;
     my $cmd = "mv $prfile ultrascan/results/${fpdbnoext}-pr.dat";
     run_cmd( $cmd, true );
     if ( run_cmd_last_error() ) {
-        my $error = sprintf( "$0: ERROR [%d] - $fpdb mv error $cmd\n", run_cmd_last_error() );
-        die $error;
+        error_exit(sprintf( "ERROR [%d] - $fpdb mv error $cmd", run_cmd_last_error() ) );
     }
 }
 
@@ -278,13 +287,12 @@ my %data;
 
 ## extract csv info for creation of mongo insert
 
-die "$0: unexpected: $hydrofile does not exist\n" if !-e $hydrofile;
+error_exit( "unexpected: $hydrofile does not exist" ) if !-e $hydrofile;
 
 my @hdata = `cat $hydrofile`;
 
 if ( @hdata != 2 ) {
-    my $error = "$0: ERROR - $fpdb SOMO expected result $hydrofile does not contain 2 lines\n";
-    die $error;
+    error_exit( "ERROR - $fpdb SOMO expected result $hydrofile does not contain 2 lines" );
 }
 
 grep chomp, @hdata;
@@ -302,8 +310,7 @@ grep chomp, @hdata;
 
     for my $k ( keys %csvh2mongo ) {
         if ( !exists $hmap{$k} ) {
-            my $error = "$0: ERROR - $fpdb SOMO expected result $hydrofile does not contain header '$k'\n";
-            die $error;
+            error_#xit("ERROR - $fpdb SOMO expected result $hydrofile does not contain header '$k'" );
         }
     }
 
@@ -332,8 +339,7 @@ grep chomp, @hdata;
     {
         my @lheaders = grep /^HEADER/, @lpdb;
         if ( @lheaders != 1 ) {
-            my $error = "$0: ERROR - $fpdb pdb does not contain exactly one header line\n";
-            die $error;
+            error_exit( "ERROR - $fpdb pdb does not contain exactly one header line" );
         } else {
             if ( $lheaders[0] =~ /HEADER\s*(\S+)\s*$/ ) {
                 $data{afdate} = $1;

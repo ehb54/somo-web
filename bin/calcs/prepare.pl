@@ -13,7 +13,7 @@ require "$scriptdir/pdbutil.pm";
 
 $somocli = "/ultrascan3/us_somo/bin64/us_saxs_cmds_t";
 $maxit   = "env RCSBROOT=/maxit-v11.100-prod-src /maxit-v11.100-prod-src/bin/maxit";
-$debug++;
+# $debug++;
 
 ## end user config
 
@@ -159,8 +159,7 @@ write_file( "ultrascan/results/$fo", join '', @lpdb );
         my $cmd = "$maxit -input $fo -output $cif -o 1 -log $logf";
         run_cmd( $cmd, true );
         if ( run_cmd_last_error() ) {
-            my $error = sprintf( "$0: ERROR [%d] - $fpdb running maxit pdb->cif $cmd\n", run_cmd_last_error() );
-            $errors .= $error;
+            die sprintf( "$0: ERROR [%d] - $fpdb running maxit pdb->cif $cmd\n", run_cmd_last_error() );
         }
         
     }
@@ -170,8 +169,7 @@ write_file( "ultrascan/results/$fo", join '', @lpdb );
         my $cmd = "$maxit -input $cif -output $mmcif -o 8 -log $logf";
         run_cmd( $cmd, true );
         if ( run_cmd_last_error() ) {
-            my $error = sprintf( "$0: ERROR [%d] - $fpdb running maxit mmcif->cif $cmd\n", run_cmd_last_error() );
-            $errors .= $error;
+            die sprintf( "$0: ERROR [%d] - $fpdb running maxit mmcif->cif $cmd\n", run_cmd_last_error() );
         }
     }
 
