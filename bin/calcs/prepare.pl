@@ -39,7 +39,7 @@ die "$somocli is not executable\n" if !-x $somocli;
 
 $fpdb = $f;
 $fpdbnoext = $fpdb;
-$fpdbnoext    =~ s/\.pdb$//;
+$fpdbnoext    =~ s/\.pdb$//i;
 
 ## get ssbonds
 
@@ -149,7 +149,7 @@ write_file( "ultrascan/results/$fo", join '', @lpdb );
 ## pdb -> cif -> mmcif
 {
     my $fpdbnoext = $fpdb;
-    $fpdbnoext    =~ s/\.pdb$//;
+    $fpdbnoext    =~ s/\.pdb$//i;
     my $cif       = "ultrascan/results/$fpdbnoext-somo.cif";
     my $mmcif     = "ultrascan/results/$fpdbnoext-somo.mmcif";
     my $logf      = "ultrascan/results/$fpdbnoext-somo.log";

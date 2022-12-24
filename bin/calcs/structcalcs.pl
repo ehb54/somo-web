@@ -190,14 +190,16 @@ close $fh;
     my $dir = tempdir( $template, CLEANUP => 1 );
     my $cdcmd = "python2 /SESCA/scripts/SESCA_main.py \@pdb";
 
-    my $fb  =  $f;
+    my $fb  =  $fpdb;
+    print sprintf( "__~pgrs al : %s\n", progress( "~pgrs cd : 0" ) );
     print "__+cd 1 : compute CD spectra start\n";
-    my $cmd = "ln $f $dir/ && cd $dir && $cdcmd $f && grep -v Workdir: CD_comp.out | perl -pe 's/ \\/srv.*SESCA\\// SESCA\\//' > $pwd/ultrascan/results/${fpdbnoext}-sesca-cd.dat";
+    my $cmd = "ln $fpdb $dir/ && cd $dir && $cdcmd $fpdb && grep -v Workdir: CD_comp.out | perl -pe 's/ \\/srv.*SESCA\\// SESCA\\//' > $pwd/ultrascan/results/${fpdbnoext}-sesca-cd.dat";
     run_cmd( $cmd, true );
     if ( run_cmd_last_error() ) {
-        print sprintf( "__+cd 2 : ERROR [%d] - $fpdb running SESCA computation $cmd\n", run_cmd_last_error() );
+        error_exit( sprintf( "ERROR [%d] - $fpdb running SESCA computation $cmd\n", run_cmd_last_error() ) );
     } else {
         print "__+cd 2 : compute CD spectra complete\n";
+        print sprintf( "__~pgrs al : %s\n", progress( "~pgrs cd : 1" ) );
     }
 }
 
@@ -223,6 +225,7 @@ $cmd = "$somo $ft $fpdb";
 # run_cmd( $cmd, true, 4 ); # try 2x since very rarely zeno call crashes and/or hangs?
 
 print "command is $cmd\n";
+print "__+somo 0 : hydrodynamic and strucutral calculations starting\n";
 
 open $ch, "$cmd 2>&1 |";
 
@@ -250,6 +253,10 @@ while ( my $l = <$ch> ) {
 }
 close $ch;
 $last_exit_status = $?;
+
+print "__+somo 99999 : hydrodynamic and structural computations complete\n";
+print "__+pp 1 : finalizing results\n";
+print sprintf( "__~pgrs al : %s\n", progress( "~pgrs pp : 0" ) );
 
 ## cleanup extra files
 unlink glob "ultrascan/somo/$fpdbnoext*{asa_res,bead_model,hydro_res,bod}";
@@ -374,7 +381,7 @@ grep chomp, @hdata;
     {
         my $pdbinfo = run_cmd( "$scriptdir/pdbinfo.pl $fpdb" );
         if ( run_cmd_last_error() ) {
-            print sprintf( "__+pp 1 : ERROR [%d] - $fpdb extrading pdb chain and sequence info\n", run_cmd_last_error() );
+            error_exit( sprintf( "ERROR [%d] - $fpdb extrading pdb chain and sequence info", run_cmd_last_error() ) );
         } else {
             $data{pdbinfo} = $pdbinfo;
         }
@@ -430,6 +437,8 @@ grep chomp, @hdata;
         print OUT $csvdata;
         close OUT;
     }
+    print sprintf( "__~pgrs al : %s\n", progress( "~pgrs pp : 1" ) );
+
 }
 
 
