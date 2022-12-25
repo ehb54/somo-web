@@ -20,7 +20,13 @@
      ,"Radius of gyration (+r) [A] (from PDB atomic structure)"     => "Rg"
     );
 
+%csvhl2mongo =
+    (
+     "Hydration [g/g]"                                              => "hyd"
+    );
+
 %mongo2csvh = reverse %csvh2mongo;
+%mongo2csvhl = reverse %csvhl2mongo;
 
 ## the mongo fields that are strings
 

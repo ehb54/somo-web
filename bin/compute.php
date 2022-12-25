@@ -108,7 +108,7 @@ if ( $pid ) {
 } else {
     ## child
     ob_start();
-    $ga->tcpmessage( [ "_textarea" => "\nComputations starting\n" ] );
+    $ga->tcpmessage( [ "_textarea" => "\nComputations starting on $fpdb\n" ] );
     ##    $ga->tcpmessage( [ "stdoutlink" => "$fdir/charmm-gui/namd/$ofile.stdout" ] );
 
     $time_start = dt_now();
@@ -130,11 +130,12 @@ $logresults = preg_replace( '/^__: /', '', $logresults );
 foreach ( $logresults as $v ) {
     $fields = explode( " : ", $v );
     if ( count( $fields ) > 1 &&
-         preg_match( '/^(Dtr|psv|S|Rs|title|Eta|Eta_sd|mw|source|title|source|ExtX|ExtY|ExtZ|sheel|helix|Rg|somodate)$/', $fields[0] ) ) {
+         preg_match( '/^(Dtr|psv|S|Rs|title|Eta|Eta_sd|mw|source|title|source|ExtX|ExtY|ExtZ|sheet|helix|Rg|somodate|hyd|name)$/', $fields[0] ) ) {
         $output->{$fields[0]} = $fields[1];
     }
 }
 
+### TODO --> check that all results retrieved!!
 
 ### map outputs
 
@@ -150,7 +151,7 @@ $output->mw         = sprintf( "%.1f", $output->mw );
 ## --> $output->hyd        = $found->hyd;
 $output->S          = digitfix( sprintf( "%.3g", $output->S ), 3 );
 $output->Dtr        = digitfix( sprintf( "%.3g", $output->Dtr ), 3 );
-$output->Rs         = digitfix( sprintf( "%.3g", $output>Rs ), 3 );
+$output->Rs         = digitfix( sprintf( "%.3g", $output->Rs ), 3 );
 $output->Eta        = sprintf( "%s +/- %.2f", digitfix( sprintf( "%.3g", $output->Eta ), 3 ), $output->Eta_sd );
 $output->Rg         = digitfix( sprintf( "%.3g", $output->Rg ), 3 );
 $output->ExtX       = sprintf( "%.2f", $output->ExtX );
@@ -160,7 +161,7 @@ $output->helix      = sprintf( "%.1f", $output->helix );
 $output->sheet      = sprintf( "%.1f", $output->sheet );
 unset( $output->Eta_sd );
 
-$base_name = preg_replace( '/\.(cif|pdb)$/i', '', $fpdb );
+$base_name = preg_replace( '/-somo\.(cif|pdb)$/i', '', $output->name );
 
 $output->downloads  = 
     "<div style='margin-top:0.5rem;margin-bottom:0rem;'>"
@@ -370,7 +371,7 @@ function update_ui( $message = true ) {
         foreach ( $textlines as $v ) {
             preg_match( '/^__\+([^:]+) : (.*)$/', $v, $matches );
             if ( count( $matches ) > 2 ) {
-                if ( !$linesshown->{$matches[1]} ) {
+                if ( !isset( $linesshown->{$matches[1]} ) ) {
                     $textout[] = $matches[2];
                     $linesshown->{$matches[1]} = true;
                 }

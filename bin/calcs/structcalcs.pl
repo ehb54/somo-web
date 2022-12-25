@@ -21,7 +21,7 @@ $debug++;
     "cd" => 10
     ,"bm" => 20
     ,"pr" => 20
-    ,"ch" => 50
+    ,"ch" => 60
     ,"pp" => 10
 );    
 
@@ -136,9 +136,27 @@ if ( !-e "ultrascan/etc/usrc.conf" ) {
     print "somo revision: $usrev\n";
 }
 
+## rename pdb if required
+{
+    my ( $name, $ext ) = $f =~ /^(.*)\.(pdb)$/i;
+    my $oname = $name;
+    $name =~ s/[^a-zA-Z0-9_-]+/_/g;
+    if ( $oname ne $name ) {
+        $cmd = qq{ln -f "$oname.$ext" $name.$ext};
+        run_cmd( $cmd, true );
+        if ( run_cmd_last_error() ) {
+            error_exit( sprintf( "ERROR [%d] - attempting to rename $cmd", run_cmd_last_error() ) );
+        } else {
+            print "__+mv 1 : Notice: renamed $oname.$ext to $name.$ext due to unsupported characters in the name\n";
+        }
+        $f = "$name.$ext";
+    }
+}
+
 ## prepare pdb
 
 print "__+in 1 : prepare structure starting\n";
+print "__+in 1b : \n";
 run_cmd( "$scriptdir/prepare.pl $f", true );
 if ( run_cmd_last_error() ) {
     error_exit( sprintf( "ERROR [%d] - $fpdb running prepare computation $cmd", run_cmd_last_error() ) );
@@ -151,10 +169,12 @@ if ( run_cmd_last_error() ) {
 $fpdbnoext = $f;
 $fpdbnoext =~ s/\.pdb$//i;
 $fpdb = "$fpdbnoext-somo.pdb";
+$somoloadstatsfile = "$fpdbnoext-loadstats.csv";
 
 my ( $fh, $ft ) = tempfile( "somocmds.XXXXXX", UNLINK => 1 );
 print $fh
     "threads 6\n"
+    . "norasmol\n"
     . "progress prog_prefix\n"
     . "saveparams init\n"
     . "saveparams results.name\n"
@@ -171,6 +191,7 @@ print $fh
     . "saveparams results.asa_rg_pos\n"
     . "saveparams max_ext_x\n"
     . "batch selectall\n"
+    . "batch load\n"
     . "batch somo_o\n"
     . "batch prr\n"
     . "batch zeno\n"
@@ -180,6 +201,7 @@ print $fh
     . "somo overwrite\n"
     . "batch overwrite\n"
     . "batch start\n"
+    . "somo saveloadstats $somoloadstatsfile\n"
     . "exit\n"
     ;
 close $fh;
@@ -194,7 +216,8 @@ close $fh;
 
     my $fb  =  $fpdb;
     print sprintf( "__~pgrs al : %s\n", progress( "~pgrs cd : 0" ) );
-    print "__+cd 1 : compute CD spectra start\n";
+    print "__+cd 1 : compute CD spectra starting\n";
+    print "__+cd 1b : \n";
     my $cmd = "ln $fpdb $dir/ && cd $dir && $cdcmd $fpdb && grep -v Workdir: CD_comp.out | perl -pe 's/ \\/srv.*SESCA\\// SESCA\\//' > $pwd/ultrascan/results/${fpdbnoext}-sesca-cd.dat";
     run_cmd( $cmd, true );
     if ( run_cmd_last_error() ) {
@@ -271,7 +294,7 @@ if ( $last_exist_status ) {
     for my $eo ( @expected_outputs ) {
         print "checking for: $eo\n";
         if ( !-e $eo ) {
-            my $error = "__: ERROR [%d] - $fpdb SOMO expected result $eo was not created";
+            my $error = "__: ERROR [%d] - $fpdb SOMO expected result $eo was not created\n";
             $errors .= $error;
             next;
         }
@@ -294,50 +317,94 @@ error_exit( $errors ) if $errors;
 
 my %data;
 
+# get any somo "load stats"
+$somoloadstatsfile = "ultrascan/somo/$somoloadstatsfile";
+error_exit( "unexpected: $somoloadstatsfile does not exist" ) if !-e $somoloadstatsfile;
+
+{
+    my @hdata = `cat $somoloadstatsfile`;
+
+    if ( @hdata != 2 ) {
+        error_exit( "ERROR - $fpdb SOMO expected result $somoloadstatsfile does not contain 2 lines");
+    }
+
+    grep chomp, @hdata;
+
+    ## split up csv and validate parameters
+    {
+        my @headers = split /,/, $hdata[0];
+        my @params  = split /,/, $hdata[1];
+
+        grep s/"//g, @headers;
+
+        my %hmap = map { $_ => 1 } @headers;
+
+        ## are all headers present?
+
+        for my $k ( keys %csvhl2mongo ) {
+            if ( !exists $hmap{$k} ) {
+                error_exit( "ERROR - $fpdb SOMO expected result $hydrofile does not contain header '$k'" );
+            }
+        }
+
+        ## create data
+        for ( my $i = 0; $i < @headers; ++$i ) {
+            my $h = $headers[$i];
+
+            ## skip any extra fields
+            next if !exists $csvhl2mongo{$h};
+
+            $data{ $csvhl2mongo{$h} } = $params[$i];
+        }
+    }
+}
+
 ## extract csv info for creation of mongo insert
 
 error_exit( "unexpected: $hydrofile does not exist" ) if !-e $hydrofile;
 
-my @hdata = `cat $hydrofile`;
-
-if ( @hdata != 2 ) {
-    error_exit( "ERROR - $fpdb SOMO expected result $hydrofile does not contain 2 lines" );
-}
-
-grep chomp, @hdata;
-
-## split up csv and validate parameters
 {
-    my @headers = split /,/, $hdata[0];
-    my @params  = split /,/, $hdata[1];
+    my @hdata = `cat $hydrofile`;
 
-    grep s/"//g, @headers;
+    if ( @hdata != 2 ) {
+        error_exit( "ERROR - $fpdb SOMO expected result $hydrofile does not contain 2 lines" );
+    }
 
-    my %hmap = map { $_ => 1 } @headers;
-    
-    ## are all headers present?
+    grep chomp, @hdata;
 
-    for my $k ( keys %csvh2mongo ) {
-        if ( !exists $hmap{$k} ) {
-            error_#xit("ERROR - $fpdb SOMO expected result $hydrofile does not contain header '$k'" );
+    ## split up csv and validate parameters
+    {
+        my @headers = split /,/, $hdata[0];
+        my @params  = split /,/, $hdata[1];
+
+        grep s/"//g, @headers;
+
+        my %hmap = map { $_ => 1 } @headers;
+        
+        ## are all headers present?
+
+        for my $k ( keys %csvh2mongo ) {
+            if ( !exists $hmap{$k} ) {
+                error_#xit("ERROR - $fpdb SOMO expected result $hydrofile does not contain header '$k'" );
+            }
         }
+
+        ## create data
+        for ( my $i = 0; $i < @headers; ++$i ) {
+            my $h = $headers[$i];
+
+            ## skip any extra fields
+            next if !exists $csvh2mongo{$h};
+
+            $data{ $csvh2mongo{$h} } = $params[$i];
+        }
+
     }
-
-    ## create data
-    for ( my $i = 0; $i < @headers; ++$i ) {
-        my $h = $headers[$i];
-
-        ## skip any extra fields
-        next if !exists $csvh2mongo{$h};
-
-        $data{ $csvh2mongo{$h} } = $params[$i];
-    }
-
 }
 
 ## additional fields
 # $data{_id}      = "${id}-${pdb_frame}${pdb_variant}";
-# $data{name}     = "AF-${id}-${pdb_frame}-model_${pdb_ver}";
+$data{name}     = $fpdb; ## or $f?
 my $processing_date = `date`;
 chomp $processing_date;
 $data{somodate} = $processing_date;
@@ -347,18 +414,18 @@ $data{somodate} = $processing_date;
     my @lpdb     = `cat $fpdb`;
     grep chomp, @lpdb;
 
-    {
-        my @lheaders = grep /^HEADER/, @lpdb;
-        if ( @lheaders != 1 ) {
-            error_exit( "ERROR - $fpdb pdb does not contain exactly one header line" );
-        } else {
-            if ( $lheaders[0] =~ /HEADER\s*(\S+)\s*$/ ) {
-                $data{afdate} = $1;
-            } else {
-                $data{afdate} = "unknown";
-            }
-        }
-    }
+#    {
+#        my @lheaders = grep /^HEADER/, @lpdb;
+#        if ( @lheaders != 1 ) {
+#            error_exit( "ERROR - $fpdb pdb does not contain exactly one header line" );
+#        } else {
+#            if ( $lheaders[0] =~ /HEADER\s*(\S+)\s*$/ ) {
+#                $data{afdate} = $1;
+#            } else {
+#                $data{afdate} = "unknown";
+#            }
+#        }
+#    }
     {
         my @lsource  = grep /^SOURCE/, @lpdb;
         grep s/^SOURCE   .//, @lsource;
@@ -433,8 +500,8 @@ $data{somodate} = $processing_date;
 
     ## create results csv
     {
-        my $csvdata = qq{"Model name","Title","Source","Hydrodynamic calculations date","Chains residue sequence start and end","Molecular mass [Da]","Partial specific volume [cm^3/g]","Translational diffusion coefficient D [F]","Sedimentation coefficient s [S]","Stokes radius [nm]","Intrinsic viscosity [cm^3/g]","Intrinsic viscosity s.d.","Radius of gyration (+r) [A] (from PDB atomic structure)","Maximum extensions X [nm]","Maximum extensions Y [nm]","Maximum extensions Z [nm]","Helix %","Sheet %"\n};
-        $csvdata .= qq{"$f","$data{title}","$data{source}","$data{somodate}","$data{pdbinfo}",$data{mw},$data{psv},$data{Dtr},$data{S},$data{Rs},$data{Eta},$data{Eta_sd},$data{Rg},$data{ExtX},$data{ExtY},$data{ExtZ},$data{helix},$data{sheet}\n};
+        my $csvdata = qq{"Model name","Title","Source","Hydrodynamic calculations date","Chains residue sequence start and end","Molecular mass [Da]","Partial specific volume [cm^3/g]","Hydration [g/g]","Translational diffusion coefficient D [F]","Sedimentation coefficient s [S]","Stokes radius [nm]","Intrinsic viscosity [cm^3/g]","Intrinsic viscosity s.d.","Radius of gyration (+r) [A] (from PDB atomic structure)","Maximum extensions X [nm]","Maximum extensions Y [nm]","Maximum extensions Z [nm]","Helix %","Sheet %"\n};
+        $csvdata .= qq{"$f","$data{title}","$data{source}","$data{somodate}","$data{pdbinfo}",$data{mw},$data{psv},$data{hyd},$data{Dtr},$data{S},$data{Rs},$data{Eta},$data{Eta_sd},$data{Rg},$data{ExtX},$data{ExtY},$data{ExtZ},$data{helix},$data{sheet}\n};
         open OUT, ">ultrascan/results/${fpdbnoext}.csv";
         print OUT $csvdata;
         close OUT;
