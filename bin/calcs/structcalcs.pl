@@ -178,9 +178,10 @@ if ( $f =~ /cif$/ ) {
     my $res = run_cmd( $cmd, true );
     my @l = split /\n/, $res;
     print "grep result:\n$res\n";
-    if ( run_cmd_last_error() ) {
-        error_exit( sprintf( "ERROR [%d] - $f checking for multiple models $cmd", run_cmd_last_error() ) );
-    }
+# grep will return an error of no match found
+#    if ( run_cmd_last_error() ) {
+#        error_exit( sprintf( "ERROR [%d] - $f checking for multiple models $cmd", run_cmd_last_error() ) );
+#    }
     if ( @l > 1 ) {
         # print "__+mm 1 : multi-model pdb found\n";
         my $cmd = "$scriptdir/pdbsinglemodel.pl $f";
@@ -337,7 +338,7 @@ if ( $last_exist_status ) {
     for my $eo ( @expected_outputs ) {
         print "checking for: $eo\n";
         if ( !-e $eo ) {
-            my $error = "__: ERROR [%d] - $fpdb SOMO expected result $eo was not created\n";
+            my $error = "__: ERROR - $fpdb SOMO expected result $eo was not created\n";
             $errors .= $error;
             next;
         }

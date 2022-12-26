@@ -49,6 +49,8 @@ $cgstate = new cgrun_state();
 
 ## are we ok to run / any pre-run checks
 
+$ga->tcpmessage( [ 'processing_progress' => 0.01 ] );
+
 ## create the command(s)
 
 $fpdb = preg_replace( '/.*\//', '', $input->pdbfile[0] );
@@ -118,7 +120,7 @@ if ( $pid ) {
 
 if ( isset( $errorlines ) && !empty( $errorlines ) ) {
     $ga->tcpmessage( [
-                         '_textarea' => "==========================\nERRORS encountered\n==========================\n$errorlines\n"
+                         '_textarea' => "\n\n==========================\nERRORS encountered\n==========================\n$errorlines\n"
                      ] );
 
     error_exit_admin( $errorlines );
@@ -361,7 +363,7 @@ function update_ui( $message = true ) {
     $progresslines = preg_grep( '/^__~pgrs al : /', $log );
     if ( count( $progresslines ) ) {
         $progress = floatVal( preg_replace( '/^__~pgrs al : /', '', end( $progresslines ) ) );
-        $ga->tcpmessage( [ '_progress' => $progress ] );
+        $ga->tcpmessage( [ 'processing_progress' => $progress ] );
     }
         
     $textlines  = preg_grep( '/^__\+/', $log );
