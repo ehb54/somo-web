@@ -49,7 +49,27 @@ $cgstate = new cgrun_state();
 
 ## are we ok to run / any pre-run checks
 
-$ga->tcpmessage( [ 'processing_progress' => 0.01 ] );
+$ga->tcpmessage( [
+                     'processing_progress' => 0.01
+                     ,"name"               => ""
+                     ,"title"              => ""
+                     ,"source"             => ""
+                     ,"somodate"           => ""
+                     ,"mw"                 => ""
+                     ,"psv"                => ""
+                     ,"hyd"                => ""
+                     ,"Dtr"                => ""
+                     ,"S"                  => ""
+                     ,"Rs"                 => ""
+                     ,"Eta"                => ""
+                     ,"Rg"                 => ""
+                     ,"ExtX"               => ""
+                     ,"ExtY"               => ""
+                     ,"ExtZ"               => ""
+                     ,"sheet"              => ""
+                     ,"helix"              => ""
+                     ,"downloads"          => ""
+                 ] );
 
 ## create the command(s)
 
