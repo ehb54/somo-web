@@ -150,8 +150,8 @@ write_file( "ultrascan/results/$fo", join '', @lpdb );
 {
     my $fpdbnoext = $fpdb;
     $fpdbnoext    =~ s/\.pdb$//i;
-    my $cif       = "ultrascan/results/$fpdbnoext-somo.cif";
-    my $mmcif     = "ultrascan/results/$fpdbnoext-somo.mmcif";
+    my $cif       = "ultrascan/results/$fpdbnoext-somo.rm_cif";
+    my $mmcif     = "ultrascan/results/$fpdbnoext-somo.cif";
     my $logf      = "ultrascan/results/$fpdbnoext-somo.log";
 
     ## make cif
@@ -174,6 +174,17 @@ write_file( "ultrascan/results/$fo", join '', @lpdb );
     }
 
     ## cleanup
+
+
+    ## remove cif
+    {
+        my $cmd = "rm -f $cif";
+        run_cmd( $cmd, true );
+        if ( run_cmd_last_error() ) {
+            die sprintf( "$0: ERROR [%d] - $fpdb removing cif $cmd\n", run_cmd_last_error() );
+        }
+    }
+    
     unlink $logf;
 }
 
