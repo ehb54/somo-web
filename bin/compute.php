@@ -98,12 +98,6 @@ if ( $pid ) {
     } 
     ## get exit status from /proc/$pid
     pcntl_waitpid( $pid, $status );
-    ## namd returns status zero even if it fails :(
-    ## $ga->tcpmessage( [ "_textarea" => sprintf( "exit status %s\n", pcntl_wexitstatus( $status ) ) ] );
-    if ( file_exists( "charmm-gui/namd/${ofile}.stderr" ) && filesize( "charmm-gui/namd/${ofile}.stderr" ) ) {
-        $ga->tcpmessage( [ "_textarea" => "NAMD errors:\n----\n" . file_get_contents( "charmm-gui/namd/${ofile}.stderr" ) . "\n----\n" ] );
-        $errors = true;
-    }
     update_ui();
 } else {
     ## child
@@ -166,12 +160,12 @@ $base_name = preg_replace( '/-somo\.(cif|pdb)$/i', '', $output->name );
 $output->downloads  = 
     "<div style='margin-top:0.5rem;margin-bottom:0rem;'>"
     . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s-somo.pdb>PDB &#x21D3;</a>&nbsp;&nbsp;&nbsp;",           $base_name )
-    . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s-somo.cif>mmCIF &#x21D3;</a>&nbsp;&nbsp;&nbsp;",       $base_name )
-    . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s-pr.dat>P(r) &#x21D3;</a>&nbsp;&nbsp;&nbsp;",        $base_name )
-    . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s-sesca-cd.dat>CD &#x21D3;</a>&nbsp;&nbsp;&nbsp;",    $base_name )
-    . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s.csv>CSV &#x21D3;</a>&nbsp;&nbsp;&nbsp;",           $base_name )
-#    . sprintf( "<a target=_blank hrefresults/$base_dir/ultrascan/results/%s-somo.zip>All zip'd &#x21D3;</a>&nbsp;&nbsp;&nbsp;",     $base_name )
-#    . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s-somo.txz>All txz'd &#x21D3;</a>&nbsp;&nbsp;&nbsp;",     $base_name )
+    . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s-somo.cif>mmCIF &#x21D3;</a>&nbsp;&nbsp;&nbsp;",         $base_name )
+    . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s-pr.dat>P(r) &#x21D3;</a>&nbsp;&nbsp;&nbsp;",            $base_name )
+    . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s-sesca-cd.dat>CD &#x21D3;</a>&nbsp;&nbsp;&nbsp;",        $base_name )
+    . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s.csv>CSV &#x21D3;</a>&nbsp;&nbsp;&nbsp;",                $base_name )
+    . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s-somo.zip>All zip'd &#x21D3;</a>&nbsp;&nbsp;&nbsp;",     $base_name )
+    . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s-somo.txz>All txz'd &#x21D3;</a>&nbsp;&nbsp;&nbsp;",     $base_name )
     . "</div>"
     ;
 
@@ -200,27 +194,26 @@ if ( file_exists( $prfile ) ) {
                  ,"layout" : {
                     "title" : "P(r)"
                     ,"font" : {
-                        "color"  : "rgb(233,222,222)"
+                        "color"  : "rgb(0,5,80)"
                     }
                     ,"paper_bgcolor": "rgba(0,0,0,0)"
                     ,"plot_bgcolor": "rgba(0,0,0,0)"
                     ,"xaxis" : {
-                       "gridcolor" : "rgba(233,222,222,0.5)"
+                       "gridcolor" : "rgba(111,111,111,0.5)"
                        ,"title" : {
                        "text" : "Distance [&#8491;]"
-                        ,"gridcolor" : "rgb(111,111,111)"
                         ,"font" : {
-                            "color"  : "rgb(233,222,222)"
+                            "color"  : "rgb(0,5,80)"
                         }
                      }
                     }
                     ,"yaxis" : {
-                       "gridcolor" : "rgba(233,222,222,0.5)"
+                       "gridcolor" : "rgba(111,111,111,0.5)"
                        ,"title" : {
                        "text" : "Normalized Frequency"
                        ,"standoff" : 20
                         ,"font" : {
-                            "color"  : "rgb(233,222,222)"
+                            "color"  : "rgb(0,5,80)"
                         }
                      }
                     }
@@ -276,26 +269,25 @@ if ( file_exists( $cdfile ) ) {
                  ,"layout" : {
                     "title" : "Circular Dichroism Spectrum"
                     ,"font" : {
-                        "color"  : "rgb(233,222,222)"
+                        "color"  : "rgb(0,5,80)"
                     }
                     ,"paper_bgcolor": "rgba(0,0,0,0)"
                     ,"plot_bgcolor": "rgba(0,0,0,0)"
                     ,"xaxis" : {
-                       "gridcolor" : "rgba(233,222,222,0.5)"
+                       "gridcolor" : "rgba(111,111,111,0.5)"
                        ,"title" : {
                        "text" : "Wavelength [nm]"
-                        ,"gridcolor" : "rgb(111,111,111)"
                         ,"font" : {
-                            "color"  : "rgb(233,222,222)"
+                            "color"  : "rgb(0,5,80)"
                         }
                      }
                     }
                     ,"yaxis" : {
-                       "gridcolor" : "rgba(233,222,222,0.5)"
+                       "gridcolor" : "rgba(111,111,111,0.5)"
                        ,"title" : {
                        "text" : "[&#920;] (10<sup>3</sup> deg*cm<sup>2</sup>/dmol)"
                         ,"font" : {
-                            "color"  : "rgb(233,222,222)"
+                            "color"  : "rgb(0,5,80)"
                         }
                      }
                     }
