@@ -191,7 +191,6 @@ print $fh
     . "saveparams results.asa_rg_pos\n"
     . "saveparams max_ext_x\n"
     . "batch selectall\n"
-    . "batch load\n"
     . "batch somo_o\n"
     . "batch prr\n"
     . "batch zeno\n"
@@ -507,7 +506,22 @@ $data{somodate} = $processing_date;
         close OUT;
     }
     print sprintf( "__~pgrs al : %s\n", progress( "~pgrs pp : 1" ) );
-
 }
 
 
+## make tar & zip files
+{
+    my $template = "zip.XXXXXXXXX";
+    my $dir = tempdir( $template, CLEANUP => 1 );
+    ### link contents into tar directory
+    my $cmd =
+        "cd $dir"
+        . " && ln ../ultrascan/results/*  ."
+        . " && tar Jcf ../ultrascan/results/${fpdbnoext}-somo.txz *"
+        . " && zip ../ultrascan/results/${fpdbnoext}-somo.zip *"
+        ;
+    run_cmd( $cmd, true );
+    if ( run_cmd_last_error() ) {
+        error_exit( sprintf( "$0: ERROR [%d] - $fpdb error creating txz & zips $cmd", run_cmd_last_error() ) );
+    }
+}
