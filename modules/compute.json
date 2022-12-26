@@ -139,7 +139,7 @@
             "id" : "pdbfile",
             "help" : "Select a PDB file and then click <i>Process</i> below",
             "type" : "file",
-            "label" : "Input PDB file",
+            "label" : "Input PDB or mmCIF file",
             "labelmargintop" : "0.5rem"
             ,"required" : "true"
             ,"layout" : {

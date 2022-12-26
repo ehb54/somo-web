@@ -43,8 +43,7 @@ class cgrun_state {
 
 ## messages
 
-$msg_admin = "<br>If this problem persists, Please contact the administrators via the <i>Feedback</i> tab.";
-
+$msg_admin = "<br><br>If this problem persists, Please contact the administrators via the <i>Feedback</i> tab.";
 
 ## utility functions
 
@@ -71,6 +70,10 @@ function run_cmd( $cmd, $exit_if_error = true, $array_result = false ) {
 function error_exit( $msg ) {
     echo '{"_message":{"icon":"toast.png","text":"' . $msg . '"}}';
     exit;
+}
+function error_exit_admin( $msg ) {
+    global $msg_admin;
+    error_exit( "$msg$msg_admin" );
 }
 
 function tf_str( $flag ) {

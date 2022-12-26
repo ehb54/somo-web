@@ -116,6 +116,14 @@ if ( $pid ) {
     exit();
 }
 
+if ( isset( $errorlines ) && !empty( $errorlines ) ) {
+    $ga->tcpmessage( [
+                         '_textarea' => "==========================\nERRORS encountered\n==========================\n$errorlines\n"
+                     ] );
+
+    error_exit_admin( $errorlines );
+}
+
 ## assemble final output
 
 $logresults = explode( "\n", `grep -P '^__:' $logfile` );
@@ -345,6 +353,7 @@ function update_ui( $message = true ) {
     global $logfile;
 
     global $linesshown;
+    global $errorlines;
 
     ## collect available results and append to ui
 
@@ -355,7 +364,8 @@ function update_ui( $message = true ) {
         $ga->tcpmessage( [ '_progress' => $progress ] );
     }
         
-    $textlines = preg_grep( '/^__\+/', $log );
+    $textlines  = preg_grep( '/^__\+/', $log );
+    $errorlines = implode( "<br>", preg_replace( '/^__E : /', '', preg_grep( '/^__E : /', $log ) ) );
 
     $textout = [];
     

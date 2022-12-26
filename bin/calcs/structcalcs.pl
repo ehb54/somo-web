@@ -29,7 +29,8 @@ $debug++;
 
 ## developer config
 
-$somo = "env HOME=`pwd` xvfb-run us_somo.sh -p -g ";
+$somo  = "env HOME=`pwd` xvfb-run us_somo.sh -p -g ";
+$maxit = "env RCSBROOT=/maxit-v11.100-prod-src /maxit-v11.100-prod-src/bin/maxit";
 
 $progress_tot_weight   = 99;
 $progress_start_offset = 4; ## for chimera
@@ -83,7 +84,7 @@ progress_init();
 
 ## end progress utility
 
-$notes = "usage: $0 pdb
+$notes = "usage: $0 pdb|cif
 
 computes hydrodynamics, P(r) and CD on structure
 
@@ -136,6 +137,23 @@ if ( !-e "ultrascan/etc/usrc.conf" ) {
     print "somo revision: $usrev\n";
 }
 
+## convert cif to pdb
+
+if ( $f =~ /cif$/ ) {
+    my $cif  = $f;
+    my $pdb  = $f;
+    $pdb     =~ s/\.cif/.pdb/i;
+    my $logf = "maxitcif2pdb.log";
+    {
+        my $cmd = "$maxit -input $cif -output $pdb -o 2 -log $logf";
+        run_cmd( $cmd, true );
+        if ( run_cmd_last_error() ) {
+            error_exit( "ERROR [%d] - $f running maxit cif->pdb $cmd\n", run_cmd_last_error() );
+        }
+    }
+    $f = $pdb;
+}    
+
 ## rename pdb if required
 {
     my ( $name, $ext ) = $f =~ /^(.*)\.(pdb)$/i;
@@ -157,11 +175,14 @@ if ( !-e "ultrascan/etc/usrc.conf" ) {
 
 print "__+in 1 : prepare structure starting\n";
 print "__+in 1b : \n";
-run_cmd( "$scriptdir/prepare.pl $f", true );
-if ( run_cmd_last_error() ) {
-    error_exit( sprintf( "ERROR [%d] - $fpdb running prepare computation $cmd", run_cmd_last_error() ) );
-} else {
-    print "__+in 2 : prepare structure complete\n";
+{
+    my $cmd = "$scriptdir/prepare.pl $f";
+    run_cmd( $cmd, true );
+    if ( run_cmd_last_error() ) {
+        error_exit( sprintf( "ERROR [%d] - $f running prepare computation $cmd", run_cmd_last_error() ) );
+    } else {
+        print "__+in 2 : prepare structure complete\n";
+    }
 }
 
 ## run somo
