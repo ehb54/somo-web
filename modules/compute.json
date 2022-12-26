@@ -126,7 +126,7 @@
     "fields" : [
         {
             "role" : "input",
-            "label" : "<h5><a target=_blank href=http://somo.aucsolutions.com>US-SOMO</a> <a target=_blank href=https://link.springer.com/article/10.1007%2Fs00249-018-1296-0>Hydrodynamic, Structural</a> and <a target=_blank href=https://www.mpibpc.mpg.de/sesca>SESCA CD</a> Calculations on User-provided Structures</h5><br>The flexibility of extensive unstructured regions is not taken into account in the computations.<br>Note: all computations refer to standard conditions, water at 20&#x2103;, pH 7.<br>Last updated 21 December 2022. See <a target=_blank href=docs>DOCS</a> tab for details.",
+            "label" : "<h5><b><a target=_blank href=http://somo.aucsolutions.com>US-SOMO</a> <a target=_blank href=https://link.springer.com/article/10.1007%2Fs00249-018-1296-0>Hydrodynamic, Structural</a> and <a target=_blank href=https://www.mpibpc.mpg.de/sesca>SESCA CD</a> Calculations on User-provided Structures</b></h5><br>The flexibility of extensive unstructured regions is not taken into account in the computations.<br>Note: all computations refer to standard conditions, water at 20&#x2103;, pH 7.<br>Last updated 21 December 2022. See <a target=_blank href=docs>DOCS</a> tab for details.",
             "type" : "label",
             "id" : "label_0"
             ,"marginbottom"    : "45px"
