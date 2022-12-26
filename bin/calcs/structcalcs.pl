@@ -171,6 +171,29 @@ if ( $f =~ /cif$/ ) {
     }
 }
 
+## extract 1st model from multi-model pdb
+
+{
+    my $cmd = "grep -P '^MODEL' $f\n";
+    my $res = run_cmd( $cmd, true );
+    my @l = split /\n/, $res;
+    print "grep result:\n$res\n";
+    if ( run_cmd_last_error() ) {
+        error_exit( sprintf( "ERROR [%d] - $f checking for multiple models $cmd", run_cmd_last_error() ) );
+    }
+    if ( @l > 1 ) {
+        # print "__+mm 1 : multi-model pdb found\n";
+        my $cmd = "$scriptdir/pdbsinglemodel.pl $f";
+        my $res = run_cmd( $cmd, true );
+        if ( run_cmd_last_error() ) {
+            error_exit( sprintf( "ERROR [%d] - $f extracting single model from pdb $cmd", run_cmd_last_error() ) );
+        }
+        chomp $res;
+        $f = $res;
+        print "__+mm 1 : NOTICE: only first model from the provided multi-model pdb will be processed\n";
+    }
+}        
+
 ## prepare pdb
 
 print "__+in 1 : prepare structure starting\n";

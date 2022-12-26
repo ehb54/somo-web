@@ -130,6 +130,8 @@ sub pdb_fields {
         $r{ "endseqnum"   } = mytrim( substr( $l, 33, 4 ) );
         $r{ "helixclass"  } = mytrim( substr( $l, 38, 2 ) );
         $r{ "length"      } = mytrim( substr( $l, 71, 5 ) );
+    } elsif  ( $r{ "recname" } eq 'MODEL' ) {
+        $r{ "model"     } = mytrim( substr( $l, 10, 4 ) );
     }
 
     \%r;
