@@ -250,7 +250,7 @@ print $fh
     ;
 close $fh;
 
-## compute CD spectra
+## compute CD spectrum
 
 {
     my $pwd = cwd;
@@ -260,14 +260,14 @@ close $fh;
 
     my $fb  =  $fpdb;
     print sprintf( "__~pgrs al : %s\n", progress( "~pgrs cd : 0" ) );
-    print "__+cd 1 : compute CD spectra starting\n";
+    print "__+cd 1 : compute CD spectrum starting\n";
     print "__+cd 1b : \n";
     my $cmd = "ln $fpdb $dir/ && cd $dir && $cdcmd $fpdb && grep -v Workdir: CD_comp.out | perl -pe 's/ \\/srv.*SESCA\\// SESCA\\//' > $pwd/ultrascan/results/${fpdbnoext}-sesca-cd.dat";
     run_cmd( $cmd, true );
     if ( run_cmd_last_error() ) {
         error_exit( sprintf( "ERROR [%d] - $fpdb running SESCA computation $cmd\n", run_cmd_last_error() ) );
     } else {
-        print "__+cd 2 : compute CD spectra complete\n";
+        print "__+cd 2 : compute CD spectrum complete\n";
         print sprintf( "__~pgrs al : %s\n", progress( "~pgrs cd : 1" ) );
     }
 }
