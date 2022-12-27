@@ -188,6 +188,7 @@
                 "parent" : "inputpanel"
             }
             ,"repeat" : "pdboraf:alphafold"
+            ,"required" : "true"
         },
         {
            "role"        : "input"

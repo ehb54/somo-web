@@ -5,7 +5,10 @@
 
 ### user configuration
 
-$logfile = "structcalcs.log";
+$logfile           = "structcalcs.log";
+$alphafold_dataset = "public-datasets-deepmind-alphafold-v4";
+$MAX_RESULTS       = 25;
+$MAX_RESULTS_SHOWN = 10;
 
 ###  number seconds between checking to see if the command process is still running
 $poll_interval_seconds = 5;
@@ -38,6 +41,7 @@ include "datetime.php";
 
 $ga        = new GenApp( $input, $output );
 $fdir      = preg_replace( "/^.*\/results\//", "results/", $input->_base_directory );
+$base_dir  = preg_replace( '/^.*\//', '', $input->_base_directory );
 $scriptdir = dirname(__FILE__);
 
 ## get state
@@ -45,10 +49,7 @@ $scriptdir = dirname(__FILE__);
 require "common.php";
 $cgstate = new cgrun_state();
 
-## process inputs here to produce output
-
-## are we ok to run / any pre-run checks
-
+## clear output
 $ga->tcpmessage( [
                      'processing_progress' => 0.01
                      ,"name"               => ""
@@ -71,10 +72,113 @@ $ga->tcpmessage( [
                      ,"downloads"          => ""
                  ] );
 
+## process inputs here to produce output
+
+## alphafold or pdb ?
+
+if ( !isset( $input->searchkey ) ) {
+    if ( !isset( $input->pdbfile[0] ) ) {
+        $ga->tcpmessage( [ 'processing_progress' => $progress ] );
+        error_exit_admin( "Internal error: No input PDB nor mmCIF file provided" );
+    }
+    $fpdb = preg_replace( '/.*\//', '', $input->pdbfile[0] );
+} else {
+    ## alphafold code
+    $ga->tcpmessage( [ 'processing_progress' => 0 ] );
+    $searchkey = strtoupper( "AF-" . preg_replace( '/^AF-/i', '', $input->searchkey ) );
+
+    ## get list of files possible, make $ids[]
+
+    $cmd = "gsutil ls gs://${alphafold_dataset}/${searchkey}*.cif | head -$MAX_RESULTS";
+    $res = run_cmd( $cmd, true, true );
+    $ids = preg_replace( '/-model.*cif$/', '', preg_replace( '/^.*\/AF-/', '', preg_grep( '/\.cif$/', $res ) ) );
+    
+    if ( count( $ids ) > 1 ) {
+
+        if ( count( $ids ) == $MAX_RESULTS ) {
+            $multiple_msg = "<i>Note - results are limited to $MAX_RESULTS, more matches may exist.<br>Use a longer search string to refine the results.</i><br>";
+        } else {
+            $multiple_msg = "";
+        }
+
+        $response =
+            json_decode(
+                $ga->tcpquestion(
+                    [
+                     "id" => "q1"
+                     ,"title" => "Multiple search results found"
+                     ,"icon"  => "noicon.png"
+                     ,"text" =>
+                     $multiple_msg
+                     . "<hr>"
+                     ,"grid" => 3
+                     ,"timeouttext" => "The time to respond has expired, please search again."
+                     ,"fields" => [
+                         [
+                          "id" => "lb1"
+                          ,"type"       => "listbox"
+                          ,"fontfamily" => "monospace"
+                          ,"values"     => $ids
+                          ,"returns"    => $ids
+                          ,"required"   => "true"
+                          ,"size"       => count( $ids ) > $MAX_RESULTS_SHOWN ? $MAX_RESULTS_SHOWN : count( $ids )
+                          ,"grid"       => [
+                              "data"    => [1,3]
+                          ]
+                         ]
+                     ]
+                    ]
+                )
+            );
+
+
+        if (
+            isset( $response->_response )
+            && isset( $response->_response->button )
+            && $response->_response->button == "ok"
+            && isset( $response->_response->lb1 )
+            && strlen( $response->_response->lb1 )
+            ) {
+            $searchkey = $response->_response->lb1;
+        } else {
+            $output->_null = "";
+            json_exit();
+        }
+    } else {
+        ## one entry, set the searchkey to the full _id
+        $searchkey = $ids[ 0 ];
+    }
+
+    ## get files themselves
+
+    $cmd = "gsutil -m cp gs://${alphafold_dataset}/AF-${searchkey}-* .";
+
+    $res = run_cmd( $cmd, false, true );
+
+    ## check for files
+
+    # $ga->tcpmessage( [ '_textarea' => "$cmd\n" ] );
+
+    $extensions = [ "model_v4.cif", "confidence_v4.json" ];
+    foreach ( $extensions as $v ) {
+        $thisf = "AF-${searchkey}-$v";
+        if ( !file_exists( $thisf  ) ) {
+            $ga->tcpmessage( [ 'processing_progress' => $progress ] );
+            error_exit_admin( "Error downloading $thisf from Google cloud, perhaps try again later" );
+        }
+    }
+
+
+    ## process
+
+    $fpdb = "AF-${searchkey}-model_v4.cif";
+}
+
+## are we ok to run / any pre-run checks
+
+
 ## create the command(s)
 
-$fpdb = preg_replace( '/.*\//', '', $input->pdbfile[0] );
-$base_dir = preg_replace( '/^.*\//', '', $input->_base_directory );
 
 # $ga->tcpmessage( [ "_textarea" => "base_dir is '$base_dir'\n" ] );
 # $ga->tcpmessage( [ "_textarea" => "fpdb is $fpdb\n" ] );
