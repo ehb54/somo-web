@@ -4,6 +4,8 @@ use File::Temp qw(tempdir);
 use File::Temp qw(tempfile);
 use File::Basename;
 use Cwd qw(cwd);
+use JSON;
+use Data::Dumper;
 
 $scriptdir = dirname(__FILE__);
 require "$scriptdir/utility.pm";
@@ -149,6 +151,31 @@ if ( $f =~ /cif$/ ) {
         run_cmd( $cmd, true );
         if ( run_cmd_last_error() ) {
             error_exit( "ERROR [%d] - $f running maxit cif->pdb $cmd\n", run_cmd_last_error() );
+        }
+    }
+    {
+        # add title source for cif
+        my $cmd = "$scriptdir/cif2pdbtitlesource.pl $cif $pdb";
+        run_cmd( $cmd, true );
+        if ( run_cmd_last_error() ) {
+            error_exit( "ERROR [%d] - cif->pdb $cmd\n", run_cmd_last_error() );
+        }
+    }
+    {
+        # mean confidence if confidence json available
+        my $cifbase = $cif;
+        $cifbase =~ s/-model.*\.cif$//;
+        my $globmatch = "${cifbase}*confidence*.json";
+        my @conffile = glob( $globmatch );
+        if ( @conffile == 1 ) {
+            my $conffile = $conffile[0];
+            my $jsonstr  = `cat $conffile`;
+            my $json     = decode_json( $jsonstr );
+            my $sumconf = 0;
+            for ( my $i = 0; $i < @{$$json{confidenceScore}}; ++$i ) {
+                $sumconf += $$json{confidenceScore}[$i];
+            }
+            $afmeanconf = sprintf( "%.2f", $sumconf / scalar @{$$json{confidenceScore}} );
         }
     }
     $f = $pdb;
@@ -537,6 +564,8 @@ $data{somodate} = $processing_date;
 
     $data{Dtr} *= 1e7;
     $data{Dtr_sd} *= 1e7;
+
+    $data{afmeanconf} = $afmeanconf ? $afmeanconf : "n/a";
 
     for my $k ( keys %data ) {
         print "__: $k : $data{$k}\n";

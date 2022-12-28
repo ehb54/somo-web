@@ -263,17 +263,17 @@
                 "parent" : "resultpanel"
             }
         },
-#        {
-#            "label" : "Mean confidence",
-#            "role" : "output",
-#            "help" : "Mean per-residue confidence is computed from the structure&apos;s AlphaFold residue confidence",
-#            "type" : "text",
-#            "id" : "afmeanconf",
-#            "labelmargintop" : "0.5rem"
-#            ,"layout" : {
-#                "parent" : "resultpanel"
-#            }
-#        },
+        {
+            "label" : "Mean confidence",
+            "role" : "output",
+            "help" : "For AlphaFold structures only. Mean per-residue confidence is computed from the structure&apos;s AlphaFold residue confidence",
+            "type" : "text",
+            "id" : "afmeanconf",
+            "labelmargintop" : "0.5rem"
+            ,"layout" : {
+                "parent" : "resultpanel"
+            }
+        },
         {
             "help" : "The date hydrodynamic and structural calculations were performed",
             "id" : "somodate",

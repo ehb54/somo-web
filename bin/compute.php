@@ -54,6 +54,7 @@ $ga->tcpmessage( [
                      'processing_progress' => 0.01
                      ,"name"               => ""
                      ,"title"              => ""
+                     ,"afmeanconf"         => ""
                      ,"source"             => ""
                      ,"somodate"           => ""
                      ,"mw"                 => ""
@@ -258,7 +259,7 @@ $logresults = preg_replace( '/^__: /', '', $logresults );
 foreach ( $logresults as $v ) {
     $fields = explode( " : ", $v );
     if ( count( $fields ) > 1 &&
-         preg_match( '/^(Dtr|psv|S|Rs|title|Eta|Eta_sd|mw|source|title|source|ExtX|ExtY|ExtZ|sheet|helix|Rg|somodate|hyd|name)$/', $fields[0] ) ) {
+         preg_match( '/^(Dtr|psv|S|Rs|title|Eta|Eta_sd|mw|source|title|source|ExtX|ExtY|ExtZ|sheet|helix|Rg|somodate|hyd|name|afmeanconf)$/', $fields[0] ) ) {
         $output->{$fields[0]} = $fields[1];
     }
 }
