@@ -305,7 +305,17 @@ $output->downloads  =
     ;
 
 ## pdb
-$output->struct = sprintf( "results/$base_dir/ultrascan/results/%s-somo.pdb", $base_name );
+if ( file_exists( sprintf( "ultrascan/results/%s-tfc-somo.pdb", $base_name ) ) ) {
+    $output->struct = [
+        "file" => sprintf( "results/$base_dir/ultrascan/results/%s-tfc-somo.pdb", $base_name )
+        ,"script" => "ribbon only; color temperature"
+        ];
+} else {
+    $output->struct = [
+        "file" => sprintf( "results/$base_dir/ultrascan/results/%s-somo.pdb", $base_name )
+        ,"script" => "ribbon only; color structure"
+        ];
+}                
 
 ## plotly
 

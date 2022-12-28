@@ -591,7 +591,8 @@ $data{somodate} = $processing_date;
     my $cmd =
         "cd $dir"
         . " && ln ../ultrascan/results/*  ."
-        . " && tar Jcf ../ultrascan/results/${fpdbnoext}-somo.txz *"
+        . " && rm AF*-tfc-somo.pdb; "
+        . " tar Jcf ../ultrascan/results/${fpdbnoext}-somo.txz *"
         . " && zip ../ultrascan/results/${fpdbnoext}-somo.zip *"
         ;
     run_cmd( $cmd, true );

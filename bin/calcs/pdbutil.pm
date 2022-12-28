@@ -269,4 +269,18 @@ sub seqres {
     @out;
 }
 
+sub map_tf {
+    my $tf = shift; # || die "map_tf requires an argument\n";
+
+    if ( $tf > 90 ) {
+        return ( ( $tf - 90 ) * (20/10) ) + 80;
+    } elsif ( $tf > 70 ) {
+        return ( ( $tf - 70 ) * (30/20) ) + 50;
+    } elsif ( $tf > 50 ) {
+        return ( ( $tf - 50 ) * (25/20) ) + 25;
+    } else {
+        return ( ( $tf ) * (25/50) ) + 0;
+    }
+}
+
 return 1;

@@ -464,9 +464,8 @@
         {
             "width" : "100%",
             "label" : "Structure",
-            "help"  : "Right click on structure for more options",
+            "help"  : "Right click on structure for more options<br>For AlphaFold structures only - coloring is by per residue confidence<br>Blues are highest confidence, reds lowest<br>",
             "role" : "output",
-            "jsmoladd" : "ribbon only; color structure",
             "id" : "struct",
             "type" : "atomicstructure",
             "labelmargintop" : "0.5rem"

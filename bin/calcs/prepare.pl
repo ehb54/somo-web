@@ -146,6 +146,37 @@ for my $l (@lpdb ) {
 write_file( $fo, join '', @lpdb );
 write_file( "ultrascan/results/$fo", join '', @lpdb );
 
+## pdb -> pdb_tf 
+if ( $f =~ /^AF-/ ) {
+    my @ol;
+    push @ol,
+        "REMARK   0 **** WARNING: TF CONFIDENCE FACTORS ARE MODIFIED! ****\n"
+        ."REMARK   0 **** THIS VERSION IS STRICTLY FOR JSMOL DISPLAY ****\n"
+        ;
+
+    my $count = 0;
+
+    for my $l ( @lpdb ) {
+        my $r = pdb_fields( $l );
+        if ( $r->{"recname"}  =~ /^ATOM$/ ) {
+            my $tf;
+            if ( $count == 2 ) {
+                $tf = "0.00";
+            } elsif ( $count == 3 ) {
+                $tf = "100.00";
+            } else {
+                $tf = sprintf( "%.2f", 100 - map_tf( $r->{"tf"} ) );
+            }
+            $tf = ' 'x(6 - length($tf) ) . $tf;
+            $l = substr( $l, 0, 60 ) . $tf . substr($l, 66 );
+            ++$count;
+        }
+        push @ol, $l;
+    }
+    my $ftfo = "ultrascan/results/${fpdbnoext}-tfc-somo.pdb";
+    write_file( $ftfo, join '', @ol );
+}
+
 ## pdb -> cif -> mmcif
 {
     my $fpdbnoext = $fpdb;
