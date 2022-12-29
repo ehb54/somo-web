@@ -325,6 +325,8 @@ print "__+somo 0 : hydrodynamic and strucutral calculations starting\n";
 
 open $ch, "$cmd 2>&1 |";
 
+$processlog = "";
+
 while ( my $l = <$ch> ) {
     # print "read line:\n$l\n";
     if ( $l =~ /^~pgrs/ ) {
@@ -343,6 +345,7 @@ while ( my $l = <$ch> ) {
             next if $thisblank && $lastblank;
             $tagcounts{$tag}++;
             print "__+$tag $tagcounts{$tag} : $l";
+            $processlog .= $l;
             $lastblank = $thisblank;
         }
     }
@@ -582,6 +585,14 @@ $data{somodate} = $processing_date;
     print sprintf( "__~pgrs al : %s\n", progress( "~pgrs pp : 1" ) );
 }
 
+## add processlog
+
+{
+    my $fo = "ultrascan/results/${fpdbnoext}-process-log.txt";
+    open my $fh, ">$fo";
+    print $fh $processlog;
+    close $fh;
+}
 
 ## make tar & zip files
 {

@@ -299,6 +299,7 @@ $output->downloads  =
     . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s-pr.dat>P(r) &#x21D3;</a>&nbsp;&nbsp;&nbsp;",            $base_name )
     . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s-sesca-cd.dat>CD &#x21D3;</a>&nbsp;&nbsp;&nbsp;",        $base_name )
     . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s.csv>CSV &#x21D3;</a>&nbsp;&nbsp;&nbsp;",                $base_name )
+    . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s-process-log.txt>Log &#x21D3;</a>&nbsp;&nbsp;&nbsp;",    $base_name )
     . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s-somo.zip>All zip'd &#x21D3;</a>&nbsp;&nbsp;&nbsp;",     $base_name )
     . sprintf( "<a target=_blank href=results/$base_dir/ultrascan/results/%s-somo.txz>All txz'd &#x21D3;</a>&nbsp;&nbsp;&nbsp;",     $base_name )
     . "</div>"
