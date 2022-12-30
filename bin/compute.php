@@ -54,6 +54,7 @@ $ga->tcpmessage( [
                      'processing_progress' => 0.01
                      ,"name"               => ""
                      ,"title"              => ""
+                     ,"warnings"           => ""
                      ,"afmeanconf"         => ""
                      ,"source"             => ""
                      ,"somodate"           => ""
@@ -264,7 +265,7 @@ foreach ( $logresults as $v ) {
     }
 }
 
-### TODO --> check that all results retrieved!!
+$output->warnings = $warningsent ? '<div style="color:red"><b>Warnings, check the progress window</b></div>' : "No warnings"; 
 
 ### map outputs
 
@@ -484,7 +485,7 @@ function init_ui() {
     global $warningsent;
 
     $linesshown   = (object)[];
-    $warningssent = false;
+    $warningsent  = false;
 }
 
 function update_ui( $message = true ) {
@@ -516,9 +517,9 @@ function update_ui( $message = true ) {
             if ( count( $matches ) > 2 ) {
                 if ( !isset( $linesshown->{$matches[1]} ) ) {
                     $textout[] = $matches[2];
-                    if ( !$warningssent &&
+                    if ( !$warningsent &&
                          preg_match( '/Encountered the following warnings/', $matches[2] ) ) {
-                        $warningssent = true;
+                        $warningsent = true;
                         $ga->tcpmessagebox(
                             [
                              "icon" => "warning.png"
