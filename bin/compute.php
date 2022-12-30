@@ -481,14 +481,17 @@ function init_ui() {
     global $ga;
     global $ofile;
     global $linesshown;
+    global $warningsent;
 
-    $linesshown = (object)[];
+    $linesshown   = (object)[];
+    $warningssent = false;
 }
 
 function update_ui( $message = true ) {
     global $ga;
     global $ofile;
     global $logfile;
+    global $warningsent;
 
     global $linesshown;
     global $errorlines;
@@ -513,6 +516,16 @@ function update_ui( $message = true ) {
             if ( count( $matches ) > 2 ) {
                 if ( !isset( $linesshown->{$matches[1]} ) ) {
                     $textout[] = $matches[2];
+                    if ( !$warningssent &&
+                         preg_match( '/Encountered the following warnings/', $matches[2] ) ) {
+                        $warningssent = true;
+                        $ga->tcpmessagebox(
+                            [
+                             "icon" => "warning.png"
+                             , "text" => "Warnings were generated.<br>See the Progress window or the Downloads <i>Log</i> for details"
+                            ]
+                            );
+                    }
                     $linesshown->{$matches[1]} = true;
                 }
             }
