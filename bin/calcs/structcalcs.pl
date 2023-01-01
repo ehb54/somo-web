@@ -31,7 +31,7 @@ $debug++;
 
 ## developer config
 
-$somo  = "env HOME=`pwd` xvfb-run us_somo.sh -p -g ";
+$somo  = "env HOME=`pwd` $scriptdir/../utils/xvfb-run-safe us_somo.sh -p -g ";
 $maxit = "env RCSBROOT=/maxit-v11.100-prod-src /maxit-v11.100-prod-src/bin/maxit";
 
 $progress_tot_weight   = 99;
@@ -245,7 +245,7 @@ $somoloadstatsfile = "$fpdbnoext-loadstats.csv";
 
 my ( $fh, $ft ) = tempfile( "somocmds.XXXXXX", UNLINK => 1 );
 print $fh
-    "threads 6\n"
+    "threads $threads\n"
     . "norasmol\n"
     . "progress prog_prefix\n"
     . "saveparams init\n"
