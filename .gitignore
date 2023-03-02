@@ -6,4 +6,7 @@ output
 util
 ajax
 results
+ultrascan
+*.pdb
+*.PDB
 

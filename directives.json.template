@@ -7,8 +7,8 @@
 # the application name should not contain any special characters
   "application"               : "somoweb",
 
-    "footer"                    : "<small>If you use this website, please cite: TBD<br>Supported by NIH-GM120600; NSF CHE-1265817, OAC-1740097, OAC-1912444.</small><br><i><small>Cookies - only one cookie is set. It is strictly necessary</small></i>",
-  "footersize"                : "90px",
+    "footer"                    : "<small>If you use this website, please cite:  <a target=_blank href=https://doi.org/10.1007/s00249-023-01636-1>doi: 10.1007/s00249-023-01636-1</a><br>Supported by NIH-GM120600; NSF CHE-1265817, OAC-1740097, OAC-1912444.</small><br><i><small>Cookies - only one cookie is set. It is strictly necessary</small></i>", 
+ "footersize"                : "90px",
 #    "footer"                   : "",
 
   "version"                   : "",
