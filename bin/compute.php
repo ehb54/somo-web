@@ -84,17 +84,39 @@ if ( !isset( $input->searchkey ) ) {
         error_exit_admin( "Internal error: No input PDB nor mmCIF file provided" );
     }
     $fpdb = preg_replace( '/.*\//', '', $input->pdbfile[0] );
+    ## the name goes on command lines here and in structcalcs.pl, so other names get a link with a safe name
+    if ( !preg_match( '/^[a-zA-Z0-9_][a-zA-Z0-9_.-]*$/', $fpdb ) ) {
+        $safepdb = preg_replace( '/^[.-]/', '_', preg_replace( '/[^a-zA-Z0-9_.-]+/', '_', $fpdb ) );
+        if ( file_exists( $safepdb ) ) {
+            unlink( $safepdb );
+        }
+        if ( !file_exists( $fpdb ) || !link( $fpdb, $safepdb ) ) {
+            error_exit_admin( "Internal error: could not link the uploaded file to a name without special characters" );
+        }
+        $fpdb = $safepdb;
+    }
 } else {
     ## alphafold code
     $ga->tcpmessage( [ 'processing_progress' => 0 ] );
-    $searchkey = strtoupper( "AF-" . preg_replace( '/^AF-/i', '', $input->searchkey ) );
+    $searchkey = is_string( $input->searchkey ) ? strtoupper( preg_replace( '/^AF-/i', '', trim( $input->searchkey ) ) ) : "";
+    ## the key goes into a gsutil wildcard on a command line: an accession or its start, optionally with the fragment
+    if ( !preg_match( '/^[A-Z0-9]+(-(F[0-9]*)?)?$/', $searchkey ) ) {
+        error_exit( "The UniProt accession may contain only letters and digits, optionally followed by a fragment such as -F1" );
+    }
+    $searchkey = "AF-$searchkey";
 
     ## get list of files possible, make $ids[]
 
-    $cmd = "gsutil ls gs://${alphafold_dataset}/${searchkey}*.cif | head -$MAX_RESULTS";
+    $cmd = "gsutil ls " . escapeshellarg( "gs://{$alphafold_dataset}/{$searchkey}*.cif" ) . " | head -$MAX_RESULTS";
     $res = run_cmd( $cmd, true, true );
     $ids = preg_replace( '/-model.*cif$/', '', preg_replace( '/^.*\/AF-/', '', preg_grep( '/\.cif$/', $res ) ) );
-    
+    ## only well formed ids, the chosen one goes on the download command line
+    $ids = array_values( preg_grep( '/^[A-Z0-9]+-F[0-9]+$/', $ids ) );
+
+    if ( !count( $ids ) ) {
+        error_exit( "No AlphaFold structure found for $searchkey" );
+    }
+
     if ( count( $ids ) > 1 ) {
 
         if ( count( $ids ) == $MAX_RESULTS ) {
@@ -139,7 +161,7 @@ if ( !isset( $input->searchkey ) ) {
             && isset( $response->_response->button )
             && $response->_response->button == "ok"
             && isset( $response->_response->lb1 )
-            && strlen( $response->_response->lb1 )
+            && in_array( $response->_response->lb1, $ids, true )
             ) {
             $searchkey = $response->_response->lb1;
         } else {
@@ -153,7 +175,7 @@ if ( !isset( $input->searchkey ) ) {
 
     ## get files themselves
 
-    $cmd = "gsutil -m cp gs://${alphafold_dataset}/AF-${searchkey}-* .";
+    $cmd = "gsutil -m cp " . escapeshellarg( "gs://{$alphafold_dataset}/AF-{$searchkey}-*" ) . " .";
 
     $res = run_cmd( $cmd, false, true );
 
@@ -185,7 +207,7 @@ if ( !isset( $input->searchkey ) ) {
 # $ga->tcpmessage( [ "_textarea" => "base_dir is '$base_dir'\n" ] );
 # $ga->tcpmessage( [ "_textarea" => "fpdb is $fpdb\n" ] );
 # $ga->tcpmessage( [ "_textarea" => "scriptdir is $scriptdir\n" ] );
-$cmd = "$scriptdir/calcs/structcalcs.pl $fpdb 2>&1 > $logfile";
+$cmd = "$scriptdir/calcs/structcalcs.pl " . escapeshellarg( $fpdb ) . " 2>&1 > $logfile";
 # $ga->tcpmessage( [ "_textarea" => "command is $cmd\n" ] );
 
 ## ready to run, fork & execute cmd in child
@@ -477,6 +499,12 @@ if ( file_exists( $cdfile ) ) {
 # $output->{'_textarea'} .= "JSON input from executable:\n"  . json_encode( $input, JSON_PRETTY_PRINT )  . "\n";
 
 echo json_encode( $output );
+
+function json_exit() {
+    global $output;
+    echo json_encode( $output );
+    exit;
+}
 
 function init_ui() {
     global $ga;

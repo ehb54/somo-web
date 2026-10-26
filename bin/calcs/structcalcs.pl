@@ -94,6 +94,8 @@ computes hydrodynamics, P(r) and CD on structure
 
 $f = shift || die $notes;
 
+## $f goes unquoted on the command lines below
+error_exit( "unsupported characters in the file name, only letters, digits, _ . and - are allowed" ) if $f !~ /^[a-zA-Z0-9_][a-zA-Z0-9_.-]*$/;
 error_exit( "$f does not exist" ) if !-e $f;
 error_exit( "$f is not readable" ) if !-r $f;
 error_exit( "$setupsomodir does not exist" ) if !-e $setupsomodir;
