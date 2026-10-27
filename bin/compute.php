@@ -107,14 +107,18 @@ if ( !isset( $input->searchkey ) ) {
 
     ## get list of files possible, make $ids[]
 
-    $cmd = "gsutil ls " . escapeshellarg( "gs://{$alphafold_dataset}/{$searchkey}*.cif" ) . " | head -$MAX_RESULTS";
+    ## gsutil's own message tells no match from a search that failed
+    $cmd = "gsutil ls " . escapeshellarg( "gs://{$alphafold_dataset}/{$searchkey}*.cif" ) . " 2>&1 | head -$MAX_RESULTS";
     $res = run_cmd( $cmd, true, true );
     $ids = preg_replace( '/-model.*cif$/', '', preg_replace( '/^.*\/AF-/', '', preg_grep( '/\.cif$/', $res ) ) );
     ## only well formed ids, the chosen one goes on the download command line
     $ids = array_values( preg_grep( '/^[A-Z0-9]+-F[0-9]+$/', $ids ) );
 
     if ( !count( $ids ) ) {
-        error_exit( "No AlphaFold structure found for $searchkey" );
+        if ( count( preg_grep( '/matched no objects/', $res ) ) ) {
+            error_exit( "No AlphaFold structure found for $searchkey" );
+        }
+        error_exit_admin( "Error searching for $searchkey on Google cloud, perhaps try again later" );
     }
 
     if ( count( $ids ) > 1 ) {
